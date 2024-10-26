@@ -5,18 +5,27 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Web Scraping con Deno</title>
+        <title>Scraping de Supermercados</title>
     </head>
 
     <body>
-        <h1>Web Scraping con Deno</h1>
+        <h1>Buscar Productos en Supermercados</h1>
         <form id="scrapeForm">
-            <input type="text" id="url" placeholder="Ingrese la URL" required>
-            <button type="submit">Scrapear</button>
+            <input type="text" id="searchTerm" placeholder="Ingrese producto a buscar" required>
+            <h3>Seleccione las tiendas:</h3>
+            <label>
+                <input type="checkbox" value="coto" checked /> Coto
+            </label>
+            <label>
+                <input type="checkbox" value="carrefour" /> Carrefour
+            </label>
+            <!-- Agregar más tiendas según sea necesario -->
+
+            <button type="submit">Buscar</button>
         </form>
         <div id="results">
-            <h2>Extracción de Títulos</h2>
-            <ul id="titles"></ul> <!-- Añadido un <ul> para mostrar los resultados -->
+            <h2>Resultados de Productos:</h2>
+            <ul id="productList"></ul>
         </div>
 
         <script src="script.js"></script>
