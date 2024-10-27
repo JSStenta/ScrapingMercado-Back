@@ -1,0 +1,39 @@
+<!-- index.html -->
+<!DOCTYPE html>
+<html lang="es">
+
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Comparador de Supermercados</title>
+    </head>
+
+    <body>
+        <h1>Buscar Producto en Supermercados</h1>
+        <form id="searchForm">
+            <label for="product">Producto:</label>
+            <input type="text" id="product" name="product" required>
+
+            <h3>Supermercados:</h3>
+            <label><input type="checkbox" name="supermarkets" value="super1"> Supermercado 1</label><br>
+            <label><input type="checkbox" name="supermarkets" value="super2"> Supermercado 2</label><br>
+
+            <button type="submit">Buscar</button>
+        </form>
+
+        <h2>Resultados:</h2>
+        <table border="1" id="resultsTable">
+            <thead>
+                <tr>
+                    <th>Supermercado</th>
+                    <th>Producto</th>
+                    <th>Precio</th>
+                </tr>
+            </thead>
+            <tbody id="resultsBody">
+                <!-- Los resultados se insertarán aquí -->
+            </tbody>
+        </table>
+        <script src="script.js"></script>
+    </body>
+</html>
