@@ -1,28 +1,29 @@
 <!-- index.html -->
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 
     <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Comparador de Supermercados</title>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Búsqueda de Productos</title>
     </head>
 
     <body>
-        <h1>Buscar Producto en Supermercados</h1>
+        <h1>Búsqueda de Productos en Supermercados</h1>
         <form id="searchForm">
             <label for="product">Producto:</label>
-            <input type="text" id="product" name="product" required>
+            <input type="text" id="product" name="product" required />
 
-            <h3>Supermercados:</h3>
-            <label><input type="checkbox" name="supermarkets" value="coto">Coto</label><br>
-            <label><input type="checkbox" name="supermarkets" value="super2"> Supermercado 2</label><br>
+            <div>
+                <label><input type="checkbox" name="supermarkets" value="coto" />Coto</label>
+                <label><input type="checkbox" name="supermarkets" value="carrefour" />Carrefour</label>
+            </div>
 
             <button type="submit">Buscar</button>
         </form>
 
-        <h2>Resultados:</h2>
-        <table border="1" id="resultsTable">
+        <h2>Resultados</h2>
+        <table id="resultsTable" border="1">
             <thead>
                 <tr>
                     <th>Supermercado</th>
@@ -33,11 +34,10 @@
                     <th>Enlace</th>
                 </tr>
             </thead>
-            <tbody id="resultsBody">
-                <!-- Los resultados se insertarán aquí -->
-            </tbody>
+            <tbody></tbody>
         </table>
-        <!-- Enlace a script.js -->
+
         <script src="script.js"></script>
     </body>
+
 </html>
