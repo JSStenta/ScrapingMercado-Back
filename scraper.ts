@@ -49,12 +49,11 @@ export async function scrapeCoto(search: string): Promise<ProductInfo[]> {
     const browser = await puppeteer.launch({
         executablePath: 'C:/Program Files/BraveSoftware/Brave-Browser/Application/brave.exe',
         headless: false,
-        slowMo: 200
+        slowMo: 100
     });
     const results: ProductInfo[] = [];
     const page = await browser.newPage();
-    const url = `https://www.cotodigital3.com.ar/sitios/cdigi/browse?_dyncharset=utf-8&Dy=1&Ntt=${search.replaceAll(' ', '+')}&Nty=1&Ntk=&siteScope=ok&_D%3AsiteScope=+&atg_store_searchInput=${search.replaceAll(' ', '+')}&idSucursal=064&_D%3AidSucursal=+&search=Ir&_D%3Asearch=+&_DARGS=%2Fsitios%2Fcartridges%2FSearchBox%2FSearchBox.jsp`;
-    console.log(url);
+    const url = `https://www.cotodigital3.com.ar/sitios/cdigi/`;
 
     try {
         await page.setUserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36");
@@ -62,8 +61,18 @@ export async function scrapeCoto(search: string): Promise<ProductInfo[]> {
             "Accept-Language": "es-Ar,es;q=0.9",
         });
         await page.goto(url, { waitUntil: 'domcontentloaded' });
-        await page.waitForSelector('.leftList'); // Espera a que se cargue el primer artículo
+        await page.waitForSelector('.atg_store_searchInput'); // Espera a que se cargue el primer artículo
+/*
+        await page.evaluate((searchTerm: string) => {
+            const busqueda = document.querySelector('.atg_store_searchInput');
+            busqueda.textContent = searchTerm;
+            busqueda.value = searchTerm;
+        }, search);*/
 
+        await page.focus('.atg_store_searchInput');
+        await page.keyboard.type(search);
+        await page.keyboard.press('Enter');
+        await page.waitForSelector('.leftList');
         await page.evaluate(() => {
             const menor = Array.from(document.querySelectorAll('option')).find(option => option.textContent.trim() === 'Precio: de menor a mayor');
             if (menor) {
@@ -164,11 +173,7 @@ export async function scrapeTest(search: string) {
     await page.goto(url);
     await page.close();
     await browser.close();
-
-
-
     console.log(baseURI);
-
 }
 
 // Función para hacer scroll en la página hasta el final
