@@ -16,34 +16,44 @@ export async function scrapeProductPrices(
     product: string,
     supermarkets: string[]
 ): Promise<ProductInfo[]> {
-    let results: ProductInfo[] = [];
+    const results: ProductInfo[] = [];
+    const scrapePromises: Promise<ProductInfo[]>[] = [];
+
     for (const supermarket of supermarkets) {
         switch (supermarket) {
             case 'coto':
-                const cotoResults = await scrapeCoto(product);
-                results.push(...cotoResults);
+                scrapePromises.push(scrapeCoto(product));
                 break;
             case 'carrefour':
-                const carrefourResults = await scrapeCarrefour(product);
-                results.push(...carrefourResults);
+                scrapePromises.push(scrapeCarrefour(product));
                 break;
-            default:
+            default: {
                 // Simulando el scraping y devolviendo un objeto de ejemplo.
-                results.push({
+                const exampleResult = {
                     supermarket,
                     title: "Nombre del producto",
                     price: "Precio de ejemplo",
                     unit: "Unidad de ejemplo",
                     image: "https://example.com/image.png",
                     link: "https://example.com/producto",
-                });
+                };
+                results.push(exampleResult);
                 break;
+            }
         }
     }
 
+    // Esperar a que todas las promesas se resuelvan
+    const scrapedResults = await Promise.all(scrapePromises);
 
-    return results;
+    // Aplanar el array de resultados y añadirlos a results
+    for (const result of scrapedResults) {
+        results.push(...result);
+    }
+
+    return results.sort((a, b) => parseFloat(a.price) - parseFloat(b.price));
 }
+
 //Funcion para buscar productos en Coto
 export async function scrapeCoto(search: string): Promise<ProductInfo[]> {
     const browser = await puppeteer.launch({
@@ -62,12 +72,12 @@ export async function scrapeCoto(search: string): Promise<ProductInfo[]> {
         });
         await page.goto(url, { waitUntil: 'domcontentloaded' });
         await page.waitForSelector('.atg_store_searchInput'); // Espera a que se cargue el primer artículo
-/*
-        await page.evaluate((searchTerm: string) => {
-            const busqueda = document.querySelector('.atg_store_searchInput');
-            busqueda.textContent = searchTerm;
-            busqueda.value = searchTerm;
-        }, search);*/
+        /*
+                await page.evaluate((searchTerm: string) => {
+                    const busqueda = document.querySelector('.atg_store_searchInput');
+                    busqueda.textContent = searchTerm;
+                    busqueda.value = searchTerm;
+                }, search);*/
 
         await page.focus('.atg_store_searchInput');
         await page.keyboard.type(search);
@@ -87,7 +97,7 @@ export async function scrapeCoto(search: string): Promise<ProductInfo[]> {
                 supermarket: 'Coto',
                 title: product.querySelector(".descrip_full")?.textContent || "No encontrado",
                 unit: product.querySelector(".unit")?.textContent || "Unidad no encontrada",
-                price: product.querySelector(".atg_store_newPrice")?.textContent || "Precio no encontrado",
+                price: (product.querySelector(".atg_store_newPrice")?.textContent).replace('$', '').replace('.', '').replace(',', '.') || "Precio no encontrado",
                 image: product.querySelector(".atg_store_productImage img")?.getAttribute("src") || "Imagen no encontrada",
                 link: "https://www.cotodigital3.com.ar" + product.querySelector("a")?.getAttribute("href") || "Link no encontrado",
             }));
@@ -106,7 +116,7 @@ export async function scrapeCarrefour(search: string) {
     const browser = await puppeteer.launch({
         executablePath: 'C:/Program Files/BraveSoftware/Brave-Browser/Application/brave.exe',
         headless: false,
-        slowMo: 200
+        slowMo: 100
     });
     const results: ProductInfo[] = [];
     const page = await browser.newPage();
@@ -137,10 +147,10 @@ export async function scrapeCarrefour(search: string) {
             return Array.from(document.querySelectorAll('a article')).map((product) => ({
                 supermarket: 'Carrefour',
                 title: product.querySelector(".t-body")?.textContent || "No encontrado",
-                unit: Array.from(product.querySelectorAll('.valtech-carrefourar-dynamic-weight-price-0-x-currencyContainer span')).map(span => span.textContent.trim()).join('') || "Precio no encontrado",  //Arreglar
-                price: Array.from(product.querySelectorAll('.valtech-carrefourar-product-price-0-x-currencyContainer span')).map(span => span.textContent.trim()).join('') || "Precio no encontrado",  //Arreglar
+                unit: Array.from(product.querySelectorAll('.valtech-carrefourar-dynamic-weight-price-0-x-currencyContainer span')).map(span => span.textContent.trim()).join('') || "Precio no encontrado",
+                price: (Array.from(product.querySelectorAll('.valtech-carrefourar-product-price-0-x-sellingPriceValue .valtech-carrefourar-product-price-0-x-currencyContainer span')).map(span => span.textContent.trim()).join('')).replace('$', '').replace('.', '').replace(',', '.') || "Precio no encontrado",
                 image: product.querySelector("img")?.getAttribute('src') || "Imagen no encontrada",
-                link: "https://www.carrefour.com.ar" + product.querySelector("a")?.getAttribute("href") || "Link no encontrado", //Arreglar
+                link: "https://www.carrefour.com.ar" + product.parentElement.parentElement.querySelector("a").getAttribute('href') || "Link no encontrado"
             }));
         });
         results.push(...products);
@@ -149,7 +159,6 @@ export async function scrapeCarrefour(search: string) {
     } finally {
         await page.close();
     }
-    console.log(results);
     await browser.close();
     return results;
 }
