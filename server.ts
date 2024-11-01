@@ -4,9 +4,10 @@ import { scrapeProductPrices } from "./scraper.ts";
 
 serve(async (req) => {
     const url = new URL(req.url);
-    
-    if (req.method === "POST" && url.pathname === "/search") {
-        const { product, supermarkets } = await req.json();
+
+    if (req.method === "GET" && url.pathname === "/search") {
+        const product = url.searchParams.get("product") ?? '';
+        const supermarkets = url.searchParams.get("supermarkets")?.split(",") || [];
         const results = await scrapeProductPrices(product, supermarkets);
         return new Response(JSON.stringify(results), {
             headers: { "Content-Type": "application/json" },
