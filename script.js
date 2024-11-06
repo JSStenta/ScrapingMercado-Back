@@ -17,6 +17,8 @@ document
       supermarkets: supermarkets.join(","),
     });
 
+    alert(params);
+
     try {
       const response = await fetch(`http://localhost:8000/search?${params}`, {
         method: "GET",
@@ -48,8 +50,8 @@ function productTable(data) {
       row.innerHTML = `
             <td><a href="${item.search}" target="_blank">${item.supermarket}</a></td>
             <td>${item.title}</td>
-            <td>${item.price}</td>
-            <td>${/*item.unit[0]}: ${item.unit[1]*/0}</td>
+            <td>$${item.price}</td>
+            <td>${item.unit[0]}: $${item.unit[1]}</td>
             <td><img src="${item.image}" alt="${item.title}" width="50" /></td>
             <td><a href="${item.link}" target="_blank">Ver producto</a></td>
         `;

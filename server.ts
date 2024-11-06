@@ -1,6 +1,8 @@
 //server.ts
+/// <reference lib="deno.ns" />
+
 import { serve } from "https://deno.land/std/http/server.ts";
-import { scrapeProductPrices } from "./scraper.ts";
+import { scrapeProductPrices } from "./Scrapers/ScrapreProductPrices.ts";
 
 serve(async (req) => {
     const url = new URL(req.url);
