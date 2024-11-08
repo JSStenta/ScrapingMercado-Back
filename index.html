@@ -1,32 +1,34 @@
 <!-- index.html -->
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es-Ar">
 
     <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Scraping de Supermercados</title>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Búsqueda de Productos</title>
     </head>
 
     <body>
-        <h1>Buscar Productos en Supermercados</h1>
-        <form id="scrapeForm">
-            <input type="text" id="searchTerm" placeholder="Ingrese producto a buscar" required>
-            <h3>Seleccione las tiendas:</h3>
-            <label>
-                <input type="checkbox" value="coto" checked /> Coto
-            </label>
-            <label>
-                <input type="checkbox" value="carrefour" /> Carrefour
-            </label>
-            <!-- Agregar más tiendas según sea necesario -->
+        <h1>Búsqueda de Productos en Supermercados</h1>
+        <form id="searchForm">
+            <label for="product">Producto:</label>
+            <input type="text" id="product" name="product" required />
+            <label for="product">Filtrar:</label>
+            <input type="checkbox" id="filter" name="filter" />
+
+            <div>
+                <label><input type="checkbox" name="supermarkets" value="coto" />Coto</label>
+                <label><input type="checkbox" name="supermarkets" value="carrefour" />Carrefour</label>
+                <label><input type="checkbox" name="supermarkets" value="elnene" />El Nene</label>
+                <label><input type="checkbox" name="supermarkets" value="ejemplo" />Default</label>
+            </div>
 
             <button type="submit">Buscar</button>
         </form>
-        <div id="results">
-            <h2>Resultados de Productos:</h2>
-            <ul id="productList"></ul>
-        </div>
+
+        <h2>Resultados</h2>
+        <table id="resultsTable">
+        </table>
 
         <script src="script.js"></script>
     </body>

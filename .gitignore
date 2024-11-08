@@ -1,0 +1,28 @@
+# Deno
+node_modules/
+deno.lock
+
+# Configuración y archivos específicos de IDE
+.vscode/
+.idea/
+
+# Archivos de salida y logs
+dist/
+build/
+*.log
+
+# Archivos JSON de configuración temporal
+*.json
+
+# Archivos del sistema
+.DS_Store
+Thumbs.db
+
+# Otros archivos temporales
+*.bak
+*.tmp
+
+# Ignora los archivos compilados de TypeScript si no quieres incluirlos
+*.js
+*.js.map
+*.d.ts

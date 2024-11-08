@@ -1,41 +1,87 @@
 //script.js
-document.getElementById("scrapeForm").addEventListener("submit", async (e) => {
-  e.preventDefault();
+// Variable global para almacenar los resultados de la búsqueda
+let allProducts = [];
 
-  const searchTerm = document.getElementById("searchTerm").value;
+document
+  .getElementById("searchForm")
+  .addEventListener("submit", async (event) => {
+    event.preventDefault();
 
-  // Obtener las tiendas seleccionadas
-  const selectedStores = Array.from(
-    document.querySelectorAll('input[type="checkbox"]:checked')
-  ).map((checkbox) => checkbox.value);
+    const product = document.getElementById("product").value;
+    const checkboxes = document.querySelectorAll(
+      'input[name="supermarkets"]:checked'
+    );
+    const supermarkets = Array.from(checkboxes).map(
+      (checkbox) => checkbox.value
+    );
 
-  // Verificar si se ha seleccionado al menos una tienda
-  if (selectedStores.length === 0) {
-    alert("Por favor, seleccione al menos una tienda.");
-    return;
-  }
-
-  const results = [];
-
-  // Realizar la solicitud para cada tienda seleccionada
-  for (const store of selectedStores) {
-    const response = await fetch("/scrape", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ searchTerm, store }),
+    const params = new URLSearchParams({
+      product,
+      supermarkets: supermarkets.join(","),
     });
 
-    const products = await response.json();
-    console.log(products);
-    results.push(...products);
-  }
+    try {
+      const response = await fetch(`http://localhost:8000/search?${params}`, {
+        method: "GET",
+      });
 
-  const productList = document.getElementById("productList");
-  productList.innerHTML = "";
+      if (!response.ok) {
+        throw new Error("Error en la búsqueda de productos");
+      }
 
-  results.forEach((product) => {
-    const li = document.createElement("li");
-    li.innerHTML = `<strong>${product.title}</strong></br><img src="${product.image}" width="50"/> ${product.price} | ${product.unit} </br>Enlace: <a target="_blank" href='${product.link}'>${product.title}</a>`;
-    productList.appendChild(li);
+      const data = await response.json();
+      console.log(data);
+      allProducts = data; // Almacena los resultados globalmente
+      filter ? filterData(data, product) : productTable(data);
+    } catch (error) {
+      console.error(error);
+    }
   });
+
+// Escucha el cambio en el checkbox "filter" y aplica el filtro en tiempo real sin hacer otra consulta al back
+document.getElementById("filter").addEventListener("change", () => {
+  const filter = document.getElementById("filter").checked;
+  const product = document.getElementById("product").value;
+
+  // Si hay datos almacenados previamente, filtra directamente desde la variable global
+  if (allProducts.length > 0) {
+    filter ? filterData(allProducts, product) : productTable(allProducts);
+  }
 });
+
+function productTable(data) {
+  if (data.length == 0) {
+    document.querySelector("#resultsTable").innerHTML =
+      "No se encontraron productos";
+  } else {
+    const table = document.querySelector("#resultsTable");
+
+    table.innerHTML = `<caption>Cantidad de elementos: ${data.length}</caption><thead><tr><th>Supermercado</th><th>Producto</th><th>Precio</th><th>Precio por kg</th><th>Imagen</th><th>Enlace</th></tr></thead><tbody></tbody>`; // Genera la tabla
+    table.setAttribute("border", "1");
+    const tbody = document.querySelector("#resultsTable tbody");
+    data.forEach((item) => {
+      const row = document.createElement("tr");
+      row.innerHTML = `
+            <td><a href="${item.search}" target="_blank">${item.supermarket}</a></td>
+            <td>${item.title}</td>
+            <td>$${item.price}</td>
+            <td>${item.unit[0]}: $${item.unit[1]}</td>
+            <td><img src="${item.image}" alt="${item.title}" width="50" /></td>
+            <td><a href="${item.link}" target="_blank">Ver producto</a></td>
+        `;
+      tbody.appendChild(row);
+    });
+  }
+}
+
+function filterData(data, search) {
+  if (data.length != 0) {
+    // Filtra los productos que coincidan con todos los términos de búsqueda
+    const resultado = data.filter((item) => {
+      const title = item["title"].toLowerCase();
+      const searchTerms = search.toLowerCase().split(" ");
+      return searchTerms.every((term) => title.includes(term)); // Filtra por todos los términos
+    });
+    productTable(resultado); // Muestra los resultados filtrados
+  }
+}
