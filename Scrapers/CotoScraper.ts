@@ -7,13 +7,14 @@ export class CotoScraper implements SupermarketScraper {
     async scrapeProduct(search: string): Promise<ProductInfo[]> {
         const browser = await puppeteer.launch({
             executablePath: 'C:/Program Files/BraveSoftware/Brave-Browser/Application/brave.exe',
-            headless: true
+            headless: false
         });
         const page = await browser.newPage();
         const results: ProductInfo[] = [];
 
         try {
             await page.setUserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36");
+            
             /*
             await page.goto("https://api.cotodigital.com.ar/sitios/cdigi/nuevositio", { waitUntil: 'domcontentloaded', });
             await page.addStyleTag({ content: '.carousel-inner { display: none !important; }' }); // No carga el publicidad
@@ -30,6 +31,7 @@ export class CotoScraper implements SupermarketScraper {
             }
         } catch (error) {
             console.error("Error scraping Coto:", error);
+            return [];
         } finally {
             await page.close();
             await browser.close();

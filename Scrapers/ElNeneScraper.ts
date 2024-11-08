@@ -7,24 +7,29 @@ export class ElNeneScraper implements SupermarketScraper {
     async scrapeProduct(search: string): Promise<ProductInfo[]> {
         const browser = await puppeteer.launch({
             executablePath: 'C:/Program Files/BraveSoftware/Brave-Browser/Application/brave.exe',
-            headless: true,
+            headless: false,
         });
         const page = await browser.newPage();
         const results: ProductInfo[] = [];
 
         try {
             await page.setUserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36");
-            await page.goto(`https://www.grupoelnene.com.ar/${encodeURI(search)}?_q${search.replaceAll(' ', '+')}&map=ft&order=OrderByPriceASC`, { waitUntil: 'load' });
-            await page.addStyleTag({ content: '.elnenearg-store-selector-1-x-popupModal { display: none !important; }' }); //No carga la publicidad
+            await this.performSearchURL(page, search);
+            await page.addStyleTag({ content: '.elnenearg-store-selector-1-x-popupModal { display: none !important; }' }); //No carga el banner
             results.push(...await this.extractProducts(page));
         } catch (error) {
             console.error("Error scraping El Nene", error);
+            return [];
         } finally {
             await page.close();
             await browser.close();
         }
 
         return results;
+    }
+
+    private async performSearchURL(page: Page, search: string) {
+        await page.goto(`https://www.grupoelnene.com.ar/${encodeURI(search)}?_q${search.replaceAll(' ', '+')}&map=ft&order=OrderByPriceASC`, { waitUntil: 'load' });
     }
 
     private async extractProducts(page: Page): Promise<ProductInfo[]> {
@@ -34,6 +39,7 @@ export class ElNeneScraper implements SupermarketScraper {
                 supermarket: 'El Nene',
                 search: globalThis.location.href,
                 title: product.querySelector(".t-body")?.textContent || "No encontrado",
+                unit: ['-', Infinity] as [string, number],
                 price: +(Array.from(product.querySelectorAll('.vtex-product-price-1-x-sellingPriceValue .vtex-product-price-1-x-currencyContainer span')).map(span => span.textContent?.trim()).join('')).replace('$', '').replace('.', '').replace(',', '.'),
                 image: product.querySelector("img")?.getAttribute('src') || "Imagen no encontrada",
                 link: "https://www.grupoelnene.com.ar" + product.querySelector("a")?.getAttribute('href') || "Link no encontrado"
