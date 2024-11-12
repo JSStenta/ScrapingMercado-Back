@@ -1,7 +1,9 @@
 //scraper.ts
 import puppeteer, { Page } from "https://deno.land/x/puppeteer@16.2.0/mod.ts";
 import { ProductInfo, SupermarketScraper } from "./SupermarketScraperInterface.ts";
-import { delay, scrollToBottom } from "./Utils.ts";
+import { delay, scrollToBottom } from "../Utils/Utils.ts";
+import { ScraperError, UnknownError } from "../Utils/errorHandler.ts";
+
 
 export class CarrefourScraper implements SupermarketScraper {
     async scrapeProduct(search: string): Promise<ProductInfo[]> {
@@ -18,26 +20,14 @@ export class CarrefourScraper implements SupermarketScraper {
         });
 
         try {
-            /*
-            await page.goto("https://www.carrefour.com.ar/", { waitUntil: 'domcontentloaded' });
-            await Promise.all([
-                page.waitForNavigation(),
-                ])
-
-            await page.setRequestInterception(true);
-            page.on('request', (request) => {
-                if (request.resourceType() === 'image') {
-                    request.abort(); // Bloquea la solicitud si es CSS
-                } else {
-                    request.continue(); // Permite todas las demás solicitudes
-                }
-            });*/
-
             this.performSearchURL(page, search)
             results.push(...await this.extractProducts(page));
         } catch (error) {
-            console.error("Error scraping Carrefour:", error);
-            return []
+            if (error instanceof Error) {
+                throw new ScraperError(error.message);
+            } else {
+                throw new UnknownError("Ocurrió un error desconocido.");
+            }
         } finally {
             await page.close();
             await browser.close();

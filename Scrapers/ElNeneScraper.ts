@@ -1,7 +1,8 @@
 //scraper.ts
 import puppeteer, { Page } from "https://deno.land/x/puppeteer@16.2.0/mod.ts";
 import { ProductInfo, SupermarketScraper } from "./SupermarketScraperInterface.ts";
-import { delay } from "./Utils.ts";
+import { delay } from "../Utils/Utils.ts";
+import { ScraperError, UnknownError } from "../Utils/errorHandler.ts";
 
 export class ElNeneScraper implements SupermarketScraper {
     async scrapeProduct(search: string): Promise<ProductInfo[]> {
@@ -18,8 +19,11 @@ export class ElNeneScraper implements SupermarketScraper {
             await page.addStyleTag({ content: '.elnenearg-store-selector-1-x-popupModal { display: none !important; }' }); //No carga el banner
             results.push(...await this.extractProducts(page));
         } catch (error) {
-            console.error("Error scraping El Nene", error);
-            return [];
+            if (error instanceof Error) {
+                throw new ScraperError(error.message);
+            } else {
+                throw new UnknownError("Ocurrió un error desconocido.");
+            }
         } finally {
             await page.close();
             await browser.close();
