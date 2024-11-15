@@ -31,7 +31,7 @@ router.get("/search", async (context) => {
                 (error instanceof ScraperError) ?
                     { error: `Error scraping ${supermarkets}` } :
                         { error: "Unknown error occurred" };
-            context.response.status = 400;
+            context.response.status = 500;
         }
     } else {
         context.response.status = 400;
