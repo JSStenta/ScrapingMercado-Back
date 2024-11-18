@@ -9,7 +9,7 @@ export class CarrefourScraper implements SupermarketScraper {
     async scrapeProduct(search: string): Promise<ProductInfo[]> {
         const browser = await puppeteer.launch({
             executablePath: 'C:/Program Files/BraveSoftware/Brave-Browser/Application/brave.exe',
-            headless: true,
+            //headless: false //Abre el navegador
         });
         const page = await browser.newPage();
         const results: ProductInfo[] = [];
@@ -50,9 +50,9 @@ export class CarrefourScraper implements SupermarketScraper {
     private async extractProducts(page: Page): Promise<ProductInfo[]> {
         await page.waitForSelector('.vtex-flex-layout-0-x-flexRow--galleyProducts a article img');
         await scrollToBottom(page);
-        await delay(2000);
+        await delay(2500);
         await scrollToBottom(page);
-        await delay(2000);
+        await delay(2500);
         return await page.evaluate(() => {
             return Array.from(document.querySelectorAll('a article')).map((product) => ({
                 supermarket: 'Carrefour',

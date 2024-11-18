@@ -5,14 +5,15 @@ import { ScraperError, UnknownError } from "../Utils/errorHandler.ts";
 export class CotoJsonScraper implements SupermarketScraper {
     async scrapeProduct(search: string): Promise<ProductInfo[]> {
         try {
-            const cantidad = (await import(`https://api.cotodigital.com.ar/sitios/cdigi/categoria?_dyncharset=utf-8&Nrpp=1&Ntt=${search}&format=json`, { with: { type: "json" } })).default.contents?.[0].Main?.[1].contents?.[0]?.['totalNumRecs'];
+            const unidad = (await import(`https://api.cotodigital.com.ar/sitios/cdigi/categoria?_dyncharset=utf-8&Nrpp=1&Ntt=${search}&format=json`, { with: { type: "json" } }));
+            const cantidad = (unidad.default.contents?.[0].Main?.[1] ?? unidad.default.contents?.[0].Main?.[0]).contents?.[0]?.['totalNumRecs'];
             if (cantidad == 0) {
                 throw new Error;
             }
             const url = `https://api.cotodigital.com.ar/sitios/cdigi/categoria?_dyncharset=utf-8&Nrpp=${cantidad}&Ntt=${search}&format=json`;
-            const resultados = await import(url, { with: { type: "json" } });
 
-            const productos = resultados?.default?.contents?.[0]?.Main?.[1]?.contents?.[0]?.records;
+            const resultados = await import(url, { with: { type: "json" } });
+            const productos = (resultados?.default?.contents?.[0]?.Main?.[1] ?? resultados?.default?.contents?.[0]?.Main?.[0]).contents?.[0]?.records;
 
             const salida: ProductInfo[] = productos
                 .map((item: any) => ({

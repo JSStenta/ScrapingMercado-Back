@@ -11,6 +11,26 @@ export async function scrollToBottom(page: Page) {
     });
 }
 
+// Función para hacer scroll en la página hasta el final
+export async function autoScroll(page: Page) {
+    await page.evaluate(async () => {
+        await new Promise<void>((resolve) => {
+            let totalHeight = 0;
+            const distance = 100; // Distancia a desplazar cada vez
+            const timer = setInterval(() => {
+                const scrollHeight = document.body.scrollHeight;
+                globalThis.scrollBy(0, distance);
+                totalHeight += distance;
+
+                if (totalHeight >= scrollHeight) {
+                    clearInterval(timer);
+                    resolve();
+                }
+            }, 200); // Intervalo de tiempo entre desplazamientos
+        });
+    });
+}
+
 // Función para hacer scroll en la página hasta el inicio
 export async function autoScrollUp(page: Page) {
     await page.evaluate(async () => {
@@ -80,9 +100,4 @@ export async function performSearchWithRedirect(page: Page, selector: string, se
     if (!redirectSuccess) {
         throw new Error('No se pudo redirigir a la página de resultados después de varios intentos');
     }
-}
-
-export function priceToNumber(price: string): number {
-    
-    return +price.replace("$", "").replace(",", ".");
 }
