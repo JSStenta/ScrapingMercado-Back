@@ -1,7 +1,9 @@
 //scraper.ts
 import puppeteer, { Page } from "https://deno.land/x/puppeteer@16.2.0/mod.ts";
 import { ProductInfo, SupermarketScraper } from "./SupermarketScraperInterface.ts";
-import { delay, scrollToBottom } from "./Utils.ts";
+import { delay, scrollToBottom } from "../Utils/Utils.ts";
+import { ScraperError, UnknownError } from "../Utils/errorHandler.ts";
+
 
 export class CarrefourScraper implements SupermarketScraper {
     public name = "Carrefour";
@@ -9,7 +11,7 @@ export class CarrefourScraper implements SupermarketScraper {
     async scrapeProduct(search: string): Promise<ProductInfo[]> {
         const browser = await puppeteer.launch({
             executablePath: 'C:/Program Files/BraveSoftware/Brave-Browser/Application/brave.exe',
-            headless: true,
+            //headless: false //Abre el navegador
         });
         const page = await browser.newPage();
         const results: ProductInfo[] = [];
@@ -20,26 +22,14 @@ export class CarrefourScraper implements SupermarketScraper {
         });
 
         try {
-            /*
-            await page.goto("https://www.carrefour.com.ar/", { waitUntil: 'domcontentloaded' });
-            await Promise.all([
-                page.waitForNavigation(),
-                ])
-
-            await page.setRequestInterception(true);
-            page.on('request', (request) => {
-                if (request.resourceType() === 'image') {
-                    request.abort(); // Bloquea la solicitud si es CSS
-                } else {
-                    request.continue(); // Permite todas las demás solicitudes
-                }
-            });*/
-
             this.performSearchURL(page, search)
             results.push(...await this.extractProducts(page));
         } catch (error) {
-            console.error("Error scraping Carrefour:", error);
-            return []
+            if (error instanceof Error) {
+                throw new ScraperError(error.message);
+            } else {
+                throw new UnknownError("Ocurrió un error desconocido.");
+            }
         } finally {
             await page.close();
             await browser.close();
@@ -76,9 +66,9 @@ export class CarrefourScraper implements SupermarketScraper {
         await page.goto(this.url + `&page=${num}`, { waitUntil: 'domcontentloaded', });
         await page.waitForSelector('.valtech-carrefourar-search-result-2-x-paginationButtonPages');
         await scrollToBottom(page);
-        await delay(2000);
+        await delay(2500);
         await scrollToBottom(page);
-        await delay(2000);
+        await delay(2500);
         return await page.evaluate(() => {
             return Array.from(document.querySelectorAll('a article')).map((product) => ({
                 supermarket: 'Carrefour',

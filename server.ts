@@ -1,34 +1,65 @@
 //server.ts
 /// <reference lib="deno.ns" />
 
-import { serve } from "https://deno.land/std/http/server.ts";
+import { Application, Router } from "https://deno.land/x/oak/mod.ts";
+import { oakCors } from "https://deno.land/x/cors/mod.ts";
 import { scrapeProductPrices } from "./Scrapers/ScrapreProductPrices.ts";
+import { SupermarketError, ScraperError } from "./Utils/errorHandler.ts";
 
-serve(async (req) => {
-    const url = new URL(req.url);
+const app = new Application();
+const router = new Router();
 
-    if (req.method === "GET" && url.pathname === "/search") {
-        const product = url.searchParams.get("product") ?? '';
-        const supermarkets = url.searchParams.get("supermarkets")?.split(",") || [];
-        const results = await scrapeProductPrices(product, supermarkets);
-        return new Response(JSON.stringify(results), {
-            headers: { "Content-Type": "application/json" },
-        });
+// Configurar CORS
+app.use(oakCors({ origin: "http://localhost:3000" }));
+
+// Definir la ruta de búsqueda
+router.get("/search", async (context) => {
+    const product = context.request.url.searchParams.get("product");
+    const supermarkets = context.request.url.searchParams.get("supermarkets")?.split(",");
+    console.log(context.request.url);
+
+    if (product && supermarkets) {
+        try {
+            const results = await scrapeProductPrices(product, supermarkets);
+            context.response.status = 200;
+            context.response.headers.set("Content-Type", "application/json");
+            context.response.body = JSON.stringify(results);
+        } catch (error) {
+            context.response.body =
+                (error instanceof SupermarketError) ?
+                    { error: "Invalid supermarket provided" } :
+                (error instanceof ScraperError) ?
+                    { error: `Error scraping ${supermarkets}` } :
+                        { error: "Unknown error occurred" };
+            context.response.status = 500;
+        }
+    } else {
+        context.response.status = 400;
+        context.response.body = { error: "Product and supermarkets parameters are required" };
     }
+});
 
-    // Sirve el archivo `script.js`
-    if (url.pathname === "/script.js") {
-        const script = await Deno.readTextFile("script.js");
-        return new Response(script, {
-            headers: { "Content-Type": "application/javascript" },
-        });
-    }
+// Ruta para `script.js`
+router.get("/script.js", async (context) => {
+    const script = await Deno.readTextFile("script.js");
+    context.response.headers.set("Content-Type", "application/javascript");
+    context.response.body = script;
+});
 
-    // Sirve el archivo `index.html` por defecto
+// Ruta para servir `index.html` por defecto
+router.get("/", async (context) => {
     const html = await Deno.readTextFile("index.html");
-    return new Response(html, {
-        headers: { "Content-Type": "text/html" },
-    });
-}, { port: 8000 });
+    context.response.headers.set("Content-Type", "text/html");
+    context.response.body = html;
+});
 
-console.log("Servidor escuchando en http://localhost:8000");
+// Usar el router en la aplicación
+app.use(router.routes());
+app.use(router.allowedMethods());
+
+// Iniciar el servidor en el puerto 8000
+app.addEventListener("listen", () => {
+    console.log("Servidor escuchando en http://localhost:8000");
+});
+
+await app.listen({ port: 8000 });

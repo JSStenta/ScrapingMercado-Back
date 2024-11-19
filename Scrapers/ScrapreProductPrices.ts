@@ -5,10 +5,11 @@ export async function scrapeProductPrices(product: string, supermarkets: string[
     const scrapingTasks: Promise<ProductInfo[]>[] = [];
 
     for (const supermarket of supermarkets) {
-        console.log(`Scraping ${supermarket}`)
         const scraper = ScraperFactory.getScraper(supermarket);
         if (scraper) {
+            console.log(`Start scraping ${supermarket}`)
             scrapingTasks.push(scraper.scrapeProduct(product));
+            console.log(`End scraping ${supermarket}`)
         }
     }
 
