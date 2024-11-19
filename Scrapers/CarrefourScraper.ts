@@ -4,6 +4,8 @@ import { ProductInfo, SupermarketScraper } from "./SupermarketScraperInterface.t
 import { delay, scrollToBottom } from "./Utils.ts";
 
 export class CarrefourScraper implements SupermarketScraper {
+    public name = "Carrefour";
+    public url = "https://www.carrefour.com.ar";
     async scrapeProduct(search: string): Promise<ProductInfo[]> {
         const browser = await puppeteer.launch({
             executablePath: 'C:/Program Files/BraveSoftware/Brave-Browser/Application/brave.exe',
@@ -54,11 +56,25 @@ export class CarrefourScraper implements SupermarketScraper {
     }
 
     private async performSearchURL(page: Page, search: string) {
-        await page.goto(`https://www.carrefour.com.ar/${encodeURI(search)}?_q=${search}&map=ft`, { waitUntil: 'domcontentloaded', });
+        this.url = `https://www.carrefour.com.ar/${encodeURI(search)}?_q=${search}&map=ft`;
+        await page.goto(this.url, { waitUntil: 'domcontentloaded', });
     }
 
     private async extractProducts(page: Page): Promise<ProductInfo[]> {
-        await page.waitForSelector('.vtex-flex-layout-0-x-flexRow--galleyProducts a article img');
+        await page.waitForSelector('.valtech-carrefourar-search-result-2-x-paginationButtonPages');
+        const cantidad = +(await page.evaluate(() => document.querySelector('.valtech-carrefourar-search-result-2-x-paginationButtonPages.undefined')?.textContent) ?? 1);
+        console.log('Buscando productos...' + cantidad);
+        const results: ProductInfo[] = [];
+        for(let i=1; i<=cantidad; i++){
+            results.push(...await this.extractProductPage(page, i));
+            console.log(`Pagina ${i}: ${results.length} productos encontrados`);
+        }
+        return results;
+    }
+
+    private async extractProductPage(page: Page, num: number): Promise<ProductInfo[]> {
+        await page.goto(this.url + `&page=${num}`, { waitUntil: 'domcontentloaded', });
+        await page.waitForSelector('.valtech-carrefourar-search-result-2-x-paginationButtonPages');
         await scrollToBottom(page);
         await delay(2000);
         await scrollToBottom(page);
