@@ -69,7 +69,7 @@ export class CarrefourScraper implements SupermarketScraper {
         await delay(2500);
         await scrollToBottom(page);
         await delay(2500);
-        return await page.evaluate(() => {
+        const salida = await page.evaluate(() => {
             return Array.from(document.querySelectorAll('a article')).map((product) => ({
                 supermarket: 'Carrefour',
                 search: globalThis.location.href,
@@ -80,5 +80,6 @@ export class CarrefourScraper implements SupermarketScraper {
                 link: "https://www.carrefour.com.ar" + product.parentElement?.parentElement?.querySelector("a")?.getAttribute('href') || "Link no encontrado"
             }));
         });
+        return (salida.some(product => !product.title || !product.price || !product.link)) ? this.extractProductPage(page, num) : salida;
     }
 }
