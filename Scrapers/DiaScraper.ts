@@ -1,7 +1,8 @@
 //scraper.ts
 import puppeteer, { Page } from "https://deno.land/x/puppeteer@16.2.0/mod.ts";
-import { ProductInfo, SupermarketScraper } from "./SupermarketScraperInterface.ts";
-import { autoScroll, delay } from "../Utils/Utils.ts";
+import { SupermarketScraper } from "./SupermarketScraperInterface.ts";
+import { ProductInfo } from "../models/product.ts";
+import { autoScroll } from "../Utils/Utils.ts";
 import { ScraperError, UnknownError } from "../Utils/errorHandler.ts";
 
 export class DiaScraper implements SupermarketScraper {

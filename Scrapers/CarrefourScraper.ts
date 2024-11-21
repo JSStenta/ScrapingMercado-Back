@@ -1,17 +1,14 @@
 //scraper.ts
-import puppeteer, { Page } from "https://deno.land/x/puppeteer@16.2.0/mod.ts";
-import { ProductInfo, SupermarketScraper } from "./SupermarketScraperInterface.ts";
+import { Page } from "https://deno.land/x/puppeteer@16.2.0/mod.ts";
+import { SupermarketScraper } from "./SupermarketScraperInterface.ts";
+import { ProductInfo } from "../models/product.ts";
 import { delay, scrollToBottom } from "../Utils/Utils.ts";
-import { ScraperError, UnknownError } from "../Utils/errorHandler.ts";
+//import { ScraperError, UnknownError } from "../Utils/errorHandler.ts";
 
 
 export class CarrefourScraper implements SupermarketScraper {
-    async scrapeProduct(search: string): Promise<ProductInfo[]> {
-        const browser = await puppeteer.launch({
-            executablePath: 'C:/Program Files/BraveSoftware/Brave-Browser/Application/brave.exe',
-            //headless: false //Abre el navegador
-        });
-        const page = await browser.newPage();
+    async scrapeProduct(search: string, page: Page): Promise<ProductInfo[]> {
+        console.log(`Start scraping Carrefour`)
         const results: ProductInfo[] = [];
 
         await page.setViewport({
@@ -20,19 +17,14 @@ export class CarrefourScraper implements SupermarketScraper {
         });
 
         try {
-            this.performSearchURL(page, search)
+            await this.performSearchURL(page, search)
             results.push(...await this.extractProducts(page));
-        } catch (error) {
-            if (error instanceof Error) {
-                throw new ScraperError(error.message);
-            } else {
-                throw new UnknownError("Ocurrió un error desconocido.");
-            }
+        } catch (_) {
+            results.slice(0, results.length);
         } finally {
             await page.close();
-            await browser.close();
         }
-
+        console.log(`End scraping Carrefour`)
         return results;
     }
 

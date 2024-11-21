@@ -1,34 +1,26 @@
 //scraper.ts
-import puppeteer, { Page } from "https://deno.land/x/puppeteer@16.2.0/mod.ts";
-import { ProductInfo, SupermarketScraper } from "./SupermarketScraperInterface.ts";
+import { Page } from "https://deno.land/x/puppeteer@16.2.0/mod.ts";
+import { SupermarketScraper } from "./SupermarketScraperInterface.ts";
+import { ProductInfo } from "../models/product.ts";
 import { delay } from "../Utils/Utils.ts";
-import { ScraperError, UnknownError } from "../Utils/errorHandler.ts";
+//import { ScraperError, UnknownError } from "../Utils/errorHandler.ts";
 
 export class ElNeneScraper implements SupermarketScraper {
-    async scrapeProduct(search: string): Promise<ProductInfo[]> {
-        const browser = await puppeteer.launch({
-            executablePath: 'C:/Program Files/BraveSoftware/Brave-Browser/Application/brave.exe',
-            //headless: false //Abre el navegador
-        });
-        const page = await browser.newPage();
+    async scrapeProduct(search: string, page: Page): Promise<ProductInfo[]> {
+        console.log(`Start scraping El Nene`)
+        
         const results: ProductInfo[] = [];
 
         try {
-            await page.setUserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36");
             await this.performSearchURL(page, search);
             await page.addStyleTag({ content: '.elnenearg-store-selector-1-x-popupModal { display: none !important; }' }); //No carga el banner
             results.push(...await this.extractProducts(page));
-        } catch (error) {
-            if (error instanceof Error) {
-                throw new ScraperError(error.message);
-            } else {
-                throw new UnknownError("Ocurrió un error desconocido.");
-            }
+        } catch (_) {
+            results.slice(0, results.length);
         } finally {
             await page.close();
-            await browser.close();
         }
-
+        console.log(`End scraping El Nene`)
         return results;
     }
 

@@ -15,10 +15,10 @@ app.use(oakCors({ origin: "http://localhost:3000" }));
 // Definir la ruta de búsqueda
 router.get("/search", async (context) => {
     const product = context.request.url.searchParams.get("product");
-    const supermarkets = context.request.url.searchParams.get("supermarkets")?.split(",");
+    const supermarkets = context.request.url.searchParams.get("supermarkets")?.split(",")??[];
     console.log(context.request.url);
 
-    if (product && supermarkets) {
+    if (product) {
         try {
             const results = await scrapeProductPrices(product, supermarkets);
             context.response.status = 200;
@@ -35,7 +35,7 @@ router.get("/search", async (context) => {
         }
     } else {
         context.response.status = 400;
-        context.response.body = { error: "Product and supermarkets parameters are required" };
+        context.response.body = { error: "Product parameter is required" };
     }
 });
 
