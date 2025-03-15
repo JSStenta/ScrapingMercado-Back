@@ -35,7 +35,7 @@ export class ElNeneScraper implements SupermarketScraper {
                 supermarket: 'El Nene',
                 search: globalThis.location.href,
                 title: product.querySelector(".t-body")?.textContent || "No encontrado",
-                unit: ['-', Infinity] as [string, number],
+                unit: undefined,
                 price: +(Array.from(product.querySelectorAll('.vtex-product-price-1-x-sellingPriceValue .vtex-product-price-1-x-currencyContainer span')).map(span => span.textContent?.trim()).join('')).replace('$', '').replace('.', '').replace(',', '.'),
                 image: product.querySelector("img")?.getAttribute('src') || "Imagen no encontrada",
                 link: "https://www.grupoelnene.com.ar" + product.querySelector("a")?.getAttribute('href') || "Link no encontrado"

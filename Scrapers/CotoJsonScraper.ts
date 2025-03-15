@@ -1,7 +1,5 @@
 import { SupermarketScraper } from "./SupermarketScraperInterface.ts";
 import { ProductInfo } from "../models/product.ts";
-//import { ScraperError, UnknownError } from "../Utils/errorHandler.ts";
-
 
 export class CotoJsonScraper implements SupermarketScraper {
     async scrapeProduct(search: string): Promise<ProductInfo[]> {
@@ -22,7 +20,7 @@ export class CotoJsonScraper implements SupermarketScraper {
                     search: url.replace('&format=json', ''),
                     title: item.records?.[0].attributes["product.displayName"]?.[0],
                     price: parseFloat(JSON.parse(item.records?.[0].attributes["product.dtoDescuentos"])[0]?.precioDescuento.replace('$', '') ?? item.records?.[0].attributes["sku.activePrice"]),
-                    unit: [(item.records?.[0].attributes["product.cFormato"]) || "Unidad", parseFloat(item.records?.[0]?.attributes["sku.referencePrice"])] as [string, number],
+                    unit: [(item.records?.[0].attributes["product.cFormato"] ?? undefined), parseFloat(item.records?.[0]?.attributes["sku.referencePrice"] ?? undefined)] as [string, number],
                     image: item.records?.[0].attributes["product.mediumImage.url"]?.[0] ?? "",
                     link: `https://api.cotodigital.com.ar/sitios/cdigi/productos${item.detailsAction["recordState"].replace('format=json', '')}`
                 }));
