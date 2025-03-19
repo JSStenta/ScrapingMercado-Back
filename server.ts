@@ -1,6 +1,5 @@
 //server.ts
 /// <reference lib="deno.ns" />
-
 import { Application, Router } from "https://deno.land/x/oak/mod.ts";
 import { oakCors } from "https://deno.land/x/cors/mod.ts";
 import { scrapeProductPrices } from "./Scrapers/ScrapreProductPrices.ts";
@@ -16,7 +15,7 @@ app.use(oakCors({ origin: "http://localhost:3000" }));
 router.get("/search", async (context) => {
     const product = context.request.url.searchParams.get("product");
     const supermarkets = context.request.url.searchParams.get("supermarkets")?.split(",")??[];
-    console.log(context.request.url);
+    // console.log(context.request.url);
 
     if (product) {
         try {

@@ -1,6 +1,6 @@
 import { SupermarketScraper } from "./SupermarketScraperInterface.ts";
 import { CotoJsonScraper } from "./CotoJsonScraper.ts";
-import { CarrefourScraper } from "./CarrefourScraper.ts";
+import { CarrefourJsonScraper } from "./CarrefourJsonScraper.ts";
 import { ElNeneScraper } from "./ElNeneScraper.ts";
 import { SupermarketError } from "../Utils/errorHandler.ts";
 import { DiaScraper } from "./DiaScraper.ts";
@@ -11,11 +11,11 @@ export class ScraperFactory {
             case 'coto':
                 return new CotoJsonScraper();
             case 'carrefour':
-                return new CarrefourScraper();
+                return new CarrefourJsonScraper();
             case 'elnene':
-                return new ElNeneScraper();
+                // return new ElNeneScraper();
             case 'dia':
-                return new DiaScraper();
+                // return new DiaScraper();
             default:
                 // Agregar más casos según sea necesario
                 throw new SupermarketError(`Scraper no implementado para el supermercado: ${supermarket}`);
