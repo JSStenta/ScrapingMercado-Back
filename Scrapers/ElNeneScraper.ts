@@ -1,61 +1,109 @@
-//scraper.ts
-import { Page } from "https://deno.land/x/puppeteer@16.2.0/mod.ts";
+/**
+ * @prettier
+ */
 import { SupermarketScraper } from "./SupermarketScraperInterface.ts";
 import { ProductInfo } from "../models/product.ts";
-import { delay } from "../Utils/Utils.ts";
-//import { ScraperError, UnknownError } from "../Utils/errorHandler.ts";
 
 export class ElNeneScraper implements SupermarketScraper {
-    async scrapeProduct(search: string, page: Page): Promise<ProductInfo[]> {
-        console.log(`Start scraping El Nene`)
-        
-        const results: ProductInfo[] = [];
-
-        try {
-            await this.performSearchURL(page, search);
-            await page.addStyleTag({ content: '.elnenearg-store-selector-1-x-popupModal { display: none !important; }' }); //No carga el banner
-            results.push(...await this.extractProducts(page));
-        } catch (_) {
-            results.slice(0, results.length);
-        } finally {
-            await page.close();
-        }
-        console.log(`End scraping El Nene`)
-        return results;
-    }
-
-    private async performSearchURL(page: Page, search: string) {
-        await page.goto(`https://www.grupoelnene.com.ar/${encodeURI(search)}?_q${search.replaceAll(' ', '+')}&map=ft&order=OrderByPriceASC`, { waitUntil: 'load' });
-    }
-
-    private async extractProducts(page: Page): Promise<ProductInfo[]> {
-        await page.waitForSelector('.vtex-product-summary-2-x-container--plp-shelf');
-        return await page.evaluate(() => {
-            return Array.from(document.querySelectorAll('.vtex-product-summary-2-x-container--plp-shelf')).map((product) => ({
-                supermarket: 'El Nene',
-                search: globalThis.location.href,
-                title: product.querySelector(".t-body")?.textContent || "No encontrado",
-                unit: undefined,
-                price: +(Array.from(product.querySelectorAll('.vtex-product-price-1-x-sellingPriceValue .vtex-product-price-1-x-currencyContainer span')).map(span => span.textContent?.trim()).join('')).replace('$', '').replace('.', '').replace(',', '.'),
-                image: product.querySelector("img")?.getAttribute('src') || "Imagen no encontrada",
-                link: "https://www.grupoelnene.com.ar" + product.querySelector("a")?.getAttribute('href') || "Link no encontrado"
-            }));
-        });
-    }
-
-    private async navegacion(page: Page) {
-        console.log('paseando por el nene')
-        await page.waitForSelector('.elnenearg-store-selector-1-x-iconContainerBtnSelector--zipSelector');
-        await page.evaluate(() => {
-            (document.querySelector('.elnenearg-store-selector-1-x-iconContainerBtnSelector--zipSelector') as HTMLElement).click();
-            (document.querySelector('.elnenearg-store-selector-1-x-inputStyles') as HTMLElement).click();
-        })
-        await page.waitForSelector('.elnenearg-store-selector-1-x-inputStyles');
-        await page.type('.elnenearg-store-selector-1-x-inputStyles', '1900', { delay: 200 });
-        await page.evaluate(() => {
-            (document.querySelector('.elnenearg-store-selector-1-x-buttonForm') as HTMLElement).click();
-        })
-        await delay(5000);
-        console.log('dejando de pasear')
-    }
+	async scrapeProduct(search: string): Promise<ProductInfo[]> {
+		console.log("Buscando en El Nene");
+		try {
+			const cantProductos = await cantidadDeProductos(search);
+			console.log("cantidadDeProductos: ", cantProductos);
+			const productos = [];
+			for (let i = 0; i < cantProductos / 100; i++) {
+				const nuevosProductos = await obtenerProductos(
+					search,
+					i * 100,
+					(i + 1) * 100 - 1
+				);
+				productos.push(...nuevosProductos);
+			}
+			return formatearProductos(productos, search);
+		} catch (error) {
+			console.error("Error:", error);
+			return [];
+		}
+	}
 }
+
+function formatearProductos(productos: any[], busqueda: string): ProductInfo[] {
+	return productos.map((producto: any) => ({
+		supermarket: "El Nene",
+		search: `https://www.grupoelnene.com.ar/${busqueda}?_q=${busqueda}`,
+		title: producto.productName, // Nombre del producto
+		price: producto.priceRange.sellingPrice.lowPrice, // Precio del producto
+		image: producto.items[0].images[0]?.imageUrl ?? "", // Imagen del producto
+		link: `https://www.grupoelnene.com.ar${producto.link}`, // Enlace al producto
+	}));
+}
+
+async function cantidadDeProductos(query: string): Promise<number> {
+	const datos = await fetchElNene(query, 0, 0);
+	return datos?.recordsFiltered ?? 0;
+}
+
+async function obtenerProductos(busqueda: string, desde = 0, hasta: number) {
+	const datos = await fetchElNene(busqueda, desde, hasta);
+	return datos?.products;
+}
+
+async function fetchElNene(busqueda: string, desde: number, hasta: number) {
+	const url = "https://www.grupoelnene.com.ar/_v/segment/graphql/v1";
+	const variables = generateVariablesJSON(busqueda, desde, hasta);
+	const params = generateSearchParams(variables);
+	const response = (await fetch(`${url}?${params}`)).json();
+	return (await response).data.productSearch;
+}
+
+function generateVariablesJSON(busqueda: string, desde: number, hasta: number) {
+	const variables = {
+		hideUnavailableItems: true,
+		skuFilter: "ALL",
+		simulationBehavior: "default",
+		installationCriteria: "MAX_WITHOUT_INTEREST",
+		productOriginVtex: false,
+		map: "ft",
+		query: busqueda,
+		orderBy: "OrderByScoreDESC",
+		from: desde,
+		to: hasta,
+		selectedFacets: [{ key: "ft", value: busqueda }],
+		fullText: busqueda,
+		// operator: "and",
+		fuzzy: "0",
+		searchState: null,
+		facetsBehavior: "Static",
+		categoryTreeBehavior: "default",
+		withFacets: false,
+		advertisementOptions: {
+			showSponsored: true,
+			sponsoredCount: 3,
+			advertisementPlacement: "top_search",
+			repeatSponsoredProducts: true,
+		},
+	};
+	return variables;
+}
+
+const generateSearchParams = (variables: any) =>
+	new URLSearchParams({
+		workspace: "master",
+		maxAge: "short",
+		appsEtag: "remove",
+		domain: "store",
+		locale: "es-AR",
+		__bindingId: "0d2133f7-5d3e-4808-bc2c-972ed5b98cce",
+		operationName: "productSearchV3",
+		variables: "{}",
+		extensions: JSON.stringify({
+			persistedQuery: {
+				version: 1,
+				sha256Hash:
+					"9177ba6f883473505dc99fcf2b679a6e270af6320a157f0798b92efeab98d5d3",
+				sender: "vtex.store-resources@0.x",
+				provider: "vtex.search-graphql@0.x",
+			},
+			variables: btoa(JSON.stringify(variables)),
+		}),
+	});

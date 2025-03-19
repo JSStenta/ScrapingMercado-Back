@@ -1,7 +1,7 @@
 import { SupermarketScraper } from "./SupermarketScraperInterface.ts";
 import { ProductInfo } from "../models/product.ts";
 
-export class CotoJsonScraper implements SupermarketScraper {
+export class CotoScraper implements SupermarketScraper {
     async scrapeProduct(search: string): Promise<ProductInfo[]> {
         try {
             const unidad = (await import(`https://api.cotodigital.com.ar/sitios/cdigi/categoria?_dyncharset=utf-8&Nrpp=1&Ntt=${search}&format=json`, { with: { type: "json" } }));
