@@ -10,7 +10,7 @@ export class ElNeneScraper implements SupermarketScraper {
 		try {
 			const cantProductos = await cantidadDeProductos(search);
 			console.log("cantidadDeProductos: ", cantProductos);
-			const productos = [];
+			const productos: ProductInfo[] = [];
 			for (let i = 0; i < cantProductos / 100; i++) {
 				const nuevosProductos = await obtenerProductos(
 					search,

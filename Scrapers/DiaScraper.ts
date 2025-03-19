@@ -10,7 +10,7 @@ export class DiaScraper implements SupermarketScraper {
 		try {
 			const cantProductos = await cantidadDeProductos(search);
 			console.log("cantidadDeProductos: ", cantProductos);
-			const productos = [];
+			const productos: ProductInfo[] = [];
 			for (let i = 0; i < cantProductos / 100; i++) {
 				const nuevosProductos = await obtenerProductos(
 					search,
@@ -19,10 +19,6 @@ export class DiaScraper implements SupermarketScraper {
 				);
 				productos.push(...nuevosProductos);
 			}
-			// await Deno.writeTextFile(
-			// 	`Dia_${search}.json`,
-			// 	JSON.stringify(productos, null, 2)
-			// ); // Guardamos en un archivo
 			return formatearProductos(productos, search);
 		} catch (error) {
 			console.error("Error:", error);
