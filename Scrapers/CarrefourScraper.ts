@@ -8,15 +8,11 @@ export class CarrefourScraper implements SupermarketScraper {
 	async scrapeProduct(search: string): Promise<ProductInfo[]> {
 		console.log("Buscando en Carrefour");
 		try {
-			const productos: any[] = [];
+			const productos: ProductInfo[] = [];
 			let desde = 0;
 			let paso = 100; // Empezamos con lotes de 100
 
 			while (true) {
-				console.log(
-					`Intentando obtener productos con paso: ${paso}, desde desde: ${desde}`
-				);
-
 				const nuevosProductos = await obtenerProductos(
 					search,
 					desde,
@@ -31,14 +27,11 @@ export class CarrefourScraper implements SupermarketScraper {
 						break; // Si ya está en 1 y sigue fallando, terminamos
 					} else {
 						paso *= 0.1;
-						console.log("Reduciendo la busqueda: ", paso);
 					}
 				} else {
 					productos.push(...nuevosProductos);
 					desde += paso; // Avanzamos según el tamaño actual
 				}
-
-				console.log(`Total productos obtenidos: ${productos.length}`);
 			}
 
 			return formatearProductos(productos, search);
@@ -95,7 +88,6 @@ async function fetchCarrefour(busqueda: string, desde: number, hasta: number) {
 		params = generateSearchParams(variables);
 		response = (await fetch(`${url}?${params}`)).json();
 	}
-	// console.log(`URL desde ${desde} hasta ${hasta} : ${url}?${params}`);
 	return (await response).data.productSearch;
 }
 

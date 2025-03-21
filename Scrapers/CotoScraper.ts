@@ -1,18 +1,21 @@
 import { SupermarketScraper } from "./SupermarketScraperInterface.ts";
 import { ProductInfo } from "../models/product.ts";
+import { guardarJson } from "../Utils/Utils.ts";
 
 export class CotoScraper implements SupermarketScraper {
     async scrapeProduct(search: string): Promise<ProductInfo[]> {
+		console.log("Buscando en Coto");
         try {
-            const unidad = (await import(`https://api.cotodigital.com.ar/sitios/cdigi/categoria?_dyncharset=utf-8&Nrpp=1&Ntt=${search}&format=json`, { with: { type: "json" } }));
+            const unidad = (await import(`https://www.cotodigital.com.ar/sitios/cdigi/categoria?_dyncharset=utf-8&Nrpp=1&Ntt=${search}&format=json`, { with: { type: "json" } }));
             const cantidad = (unidad.default.contents?.[0].Main?.[1] ?? unidad.default.contents?.[0].Main?.[0]).contents?.[0]?.['totalNumRecs'];
             if (cantidad == 0) {
                 throw new Error;
             }
-            const url = `https://api.cotodigital.com.ar/sitios/cdigi/categoria?_dyncharset=utf-8&Nrpp=${cantidad}&Ntt=${search}&format=json`;
+            const url = `https://www.cotodigital.com.ar/sitios/cdigi/categoria?_dyncharset=utf-8&Nrpp=${cantidad}&Ntt=${search}&format=json`;
 
             const resultados = await import(url, { with: { type: "json" } });
-            const productos = (resultados?.default?.contents?.[0]?.Main?.[1] ?? resultados?.default?.contents?.[0]?.Main?.[0]).contents?.[0]?.records;
+            // guardarJson(`coto_${search}`,resultados)
+            			const productos: ProductInfo[] = (resultados?.default?.contents?.[0]?.Main?.[1] ?? resultados?.default?.contents?.[0]?.Main?.[0]).contents?.[0]?.records;
 
             const salida: ProductInfo[] = productos
                 .map((item: any) => ({

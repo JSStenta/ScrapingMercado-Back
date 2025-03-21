@@ -13,6 +13,7 @@ build/
 
 # Archivos JSON de configuración temporal
 *.json
+!deno.json
 
 # Archivos del sistema
 .DS_Store

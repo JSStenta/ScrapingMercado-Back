@@ -9,7 +9,6 @@ export class ElNeneScraper implements SupermarketScraper {
 		console.log("Buscando en El Nene");
 		try {
 			const cantProductos = await cantidadDeProductos(search);
-			console.log("cantidadDeProductos: ", cantProductos);
 			const productos: ProductInfo[] = [];
 			for (let i = 0; i < cantProductos / 100; i++) {
 				const nuevosProductos = await obtenerProductos(
@@ -32,7 +31,7 @@ function formatearProductos(productos: any[], busqueda: string): ProductInfo[] {
 		supermarket: "El Nene",
 		search: `https://www.grupoelnene.com.ar/${busqueda}?_q=${busqueda}`,
 		title: producto.productName, // Nombre del producto
-		price: producto.priceRange.sellingPrice.lowPrice, // Precio del producto
+		price: parseFloat(producto.priceRange.sellingPrice.lowPrice), // Precio del producto
 		image: producto.items[0].images[0]?.imageUrl ?? "", // Imagen del producto
 		link: `https://www.grupoelnene.com.ar${producto.link}`, // Enlace al producto
 	}));

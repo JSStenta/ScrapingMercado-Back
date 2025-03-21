@@ -9,7 +9,6 @@ export class DiaScraper implements SupermarketScraper {
 		console.log("Buscando en Dia");
 		try {
 			const cantProductos = await cantidadDeProductos(search);
-			console.log("cantidadDeProductos: ", cantProductos);
 			const productos: ProductInfo[] = [];
 			for (let i = 0; i < cantProductos / 100; i++) {
 				const nuevosProductos = await obtenerProductos(
@@ -34,11 +33,11 @@ function formatearProductos(productos: any[], busqueda: string): ProductInfo[] {
 		title: producto.productName, // Nombre del producto
 		price: producto.priceRange.sellingPrice.lowPrice, // Precio del producto
 		unit: [
-			producto.specificationGroups[0].specifications[1].values[0],
-			producto.specificationGroups[0].specifications[0].values[0],
+			producto.specificationGroups[0]?.specifications[1]?.values[0],
+			parseFloat(producto.specificationGroups[0]?.specifications[0]?.values[0]),
 		],
 		image: producto.items[0].images[0]?.imageUrl ?? "", // Imagen del producto
-		link: `https://diaonline.supermercadosdia.com.ar${producto.link}`, // Enlace al producto
+		link: `https://diaonline.supermercadosdia.com.ar/${producto.linkText}/p`, // Enlace al producto
 	}));
 }
 
@@ -67,7 +66,6 @@ function generateVariablesJSON(busqueda: string, desde: number, hasta: number) {
 		simulationBehavior: "default",
 		installationCriteria: "MAX_WITHOUT_INTEREST",
 		productOriginVtex: true,
-		// productOriginVtex: false,
 		map: "ft",
 		query: busqueda,
 		orderBy: "OrderByScoreDESC",
@@ -75,7 +73,6 @@ function generateVariablesJSON(busqueda: string, desde: number, hasta: number) {
 		to: hasta,
 		selectedFacets: [{ key: "ft", value: busqueda }],
 		fullText: busqueda,
-		// operator: "and",
 		fuzzy: "0",
 		searchState: null,
 		facetsBehavior: "Static",
