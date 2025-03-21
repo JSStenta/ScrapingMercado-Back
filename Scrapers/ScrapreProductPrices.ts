@@ -1,15 +1,16 @@
-import { ProductInfo } from "./SupermarketScraperInterface.ts";
+import { ProductInfo } from "../models/product.ts";
 import { ScraperFactory } from "./ScraperFactory.ts";
 
 export async function scrapeProductPrices(product: string, supermarkets: string[]): Promise<ProductInfo[]> {
     const scrapingTasks: Promise<ProductInfo[]>[] = [];
 
+    if (supermarkets.length === 0) {
+        supermarkets.push('coto', 'carrefour', 'elnene');
+    }
     for (const supermarket of supermarkets) {
         const scraper = ScraperFactory.getScraper(supermarket);
         if (scraper) {
-            console.log(`Start scraping ${supermarket}`)
             scrapingTasks.push(scraper.scrapeProduct(product));
-            console.log(`End scraping ${supermarket}`)
         }
     }
 

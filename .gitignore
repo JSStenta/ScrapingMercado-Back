@@ -13,6 +13,7 @@ build/
 
 # Archivos JSON de configuración temporal
 *.json
+!deno.json
 
 # Archivos del sistema
 .DS_Store
@@ -26,3 +27,6 @@ Thumbs.db
 *.js
 *.js.map
 *.d.ts
+
+# env files (can opt-in for committing if needed)
+.env*

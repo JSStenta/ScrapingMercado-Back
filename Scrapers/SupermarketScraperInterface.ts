@@ -1,13 +1,4 @@
-export interface ProductInfo {
-    supermarket: string;
-    search: string;
-    title: string;
-    price: number;
-    unit?: [string, number];
-    image: string;
-    link: string;
-}
-
+import { ProductInfo } from "../models/product.ts";
 export interface SupermarketScraper {
     scrapeProduct(search: string): Promise<ProductInfo[]>;
 }
