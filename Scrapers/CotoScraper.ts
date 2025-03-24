@@ -1,35 +1,59 @@
+/**
+ * @prettier
+ */
 import { SupermarketScraper } from "./SupermarketScraperInterface.ts";
 import { ProductInfo } from "../models/product.ts";
-import { guardarJson } from "../Utils/Utils.ts";
 
 export class CotoScraper implements SupermarketScraper {
-    async scrapeProduct(search: string): Promise<ProductInfo[]> {
+	async scrapeProduct(search: string): Promise<ProductInfo[]> {
 		console.log("Buscando en Coto");
-        try {
-            const unidad = (await import(`https://www.cotodigital.com.ar/sitios/cdigi/categoria?_dyncharset=utf-8&Nrpp=1&Ntt=${search}&format=json`, { with: { type: "json" } }));
-            const cantidad = (unidad.default.contents?.[0].Main?.[1] ?? unidad.default.contents?.[0].Main?.[0]).contents?.[0]?.['totalNumRecs'];
-            if (cantidad == 0) {
-                throw new Error;
-            }
-            const url = `https://www.cotodigital.com.ar/sitios/cdigi/categoria?_dyncharset=utf-8&Nrpp=${cantidad}&Ntt=${search}&format=json`;
+		try {
+			const cantidad = (await fetchCoto(search))["totalNumRecs"];
+			if (!cantidad) throw new Error("No se encontraron productos en Coto");
 
-            const resultados = await import(url, { with: { type: "json" } });
-            // guardarJson(`coto_${search}`,resultados)
-            			const productos: ProductInfo[] = (resultados?.default?.contents?.[0]?.Main?.[1] ?? resultados?.default?.contents?.[0]?.Main?.[0]).contents?.[0]?.records;
+			const productos = (await fetchCoto(search, cantidad)).records;
+			const url = `https://www.cotodigital.com.ar/sitios/cdigi/categoria?_dyncharset=utf-8&Nrpp=${cantidad}&Ntt=${search}`;
 
-            const salida: ProductInfo[] = productos
-                .map((item: any) => ({
-                    supermarket: 'Coto',
-                    search: url.replace('&format=json', ''),
-                    title: item.records?.[0].attributes["product.displayName"]?.[0],
-                    price: parseFloat(JSON.parse(item.records?.[0].attributes["product.dtoDescuentos"])[0]?.precioDescuento.replace('$', '') ?? item.records?.[0].attributes["sku.activePrice"]),
-                    unit: [(item.records?.[0].attributes["product.cFormato"] ?? undefined), parseFloat(item.records?.[0]?.attributes["sku.referencePrice"] ?? undefined)] as [string, number],
-                    image: item.records?.[0].attributes["product.mediumImage.url"]?.[0] ?? "",
-                    link: `https://api.cotodigital.com.ar/sitios/cdigi/productos${item.detailsAction["recordState"].replace('format=json', '')}`
-                }));
-            return salida;
-        } catch (_) {
-            return [];
-        }
-    }
+			const salida: ProductInfo[] = productos.map((item: any) => {
+				const path = item.records[0];
+				try {
+					const producto = {
+						supermarket: "Coto",
+						search: url,
+						title: path.attributes["product.displayName"][0],
+						price: parseFloat(
+							JSON.parse(
+								path.attributes["product.dtoDescuentos"][0]
+							)[0]?.precioDescuento.replace("$", "") ??
+								path.attributes["sku.activePrice"]
+						),
+						unit: [
+							path.attributes["product.cFormato"] ?? undefined,
+							parseFloat(path.attributes["sku.referencePrice"] ?? undefined),
+						] as [string, number],
+						image: path.attributes["product.mediumImage.url"][0] ?? "",
+						link: `https://www.cotodigital.com.ar/sitios/cdigi/productos${(
+							item.detailsAction["recordState"] ??
+							path.detailsAction["recordState"]
+						).replace("format=json", "")}`,
+					};
+					return producto;
+				} catch (e) {
+					console.error("Error en coto", e);
+				}
+			});
+			return salida ?? [];
+		} catch (_) {
+			return [];
+		}
+	}
+}
+async function fetchCoto(search: string, cantidad = 1) {
+	const response = await (
+		await fetch(
+			`https://www.cotodigital.com.ar/sitios/cdigi/categoria?_dyncharset=utf-8&Nrpp=${cantidad}&Ntt=${search}&format=json`
+		)
+	).json();
+	const largo = response.contents[0].Main.length - 1;
+	return response.contents[0].Main[largo].contents[0];
 }
