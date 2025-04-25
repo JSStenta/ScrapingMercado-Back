@@ -1,12 +1,13 @@
 // Modelo estándar de producto
 export interface ProductInfo {
-    supermarket: string;
-    search: string;
-    title: string;
-    price: number;
-    unit?: [string, number];
-    image: string;
-    link: string;
+    supermercado: string;
+    busqueda: string;
+    titulo: string;
+    precio: number;
+    unidad?: string;
+    precioUnidad?: number;
+    imagen: string;
+    enlace: string;
 }
 
 // Enumeración de unidades estándar

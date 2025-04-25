@@ -29,16 +29,14 @@ export class DiaScraper implements SupermarketScraper {
 
 function formatearProductos(productos: any[], busqueda: string): ProductInfo[] {
 	return productos.map((producto: any) => ({
-		supermarket: "Dia",
-		search: `https://diaonline.supermercadosdia.com.ar/${busqueda}?_q=${busqueda}`,
-		title: producto.productName, // Nombre del producto
-		price: producto.priceRange.sellingPrice.lowPrice, // Precio del producto
-		unit: [
-			producto.specificationGroups[0]?.specifications[1]?.values[0],
-			parseFloat(producto.specificationGroups[0]?.specifications[0]?.values[0]),
-		],
-		image: producto.items[0].images[0]?.imageUrl ?? "", // Imagen del producto
-		link: `https://diaonline.supermercadosdia.com.ar/${producto.linkText}/p`, // Enlace al producto
+		supermercado: "Dia",
+		busqueda: `https://diaonline.supermercadosdia.com.ar/${busqueda}?_q=${busqueda}`,
+		titulo: producto.productName,
+		precio: producto.priceRange.sellingPrice.lowPrice,
+		unidad: producto.specificationGroups[0]?.specifications[1]?.values[0],
+		precioUnidad: parseFloat(producto.specificationGroups[0]?.specifications[0]?.values[0]),
+		imagen: producto.items[0].images[0]?.imageUrl ?? "",
+		enlace: `https://diaonline.supermercadosdia.com.ar/${producto.linkText}/p`,
 	}));
 }
 

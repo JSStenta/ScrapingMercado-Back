@@ -9,17 +9,17 @@ const app = new Application();
 const router = new Router();
 
 // Configurar CORS
-app.use(oakCors({ origin: "http://localhost:3000" }));
+app.use(oakCors({ origin: "*"}));
 
 // Definir la ruta de búsqueda
-router.get("/search", async (context) => {
-    const product = context.request.url.searchParams.get("product");
-    const supermarkets = context.request.url.searchParams.get("supermarkets")?.split(",")??[];
-    // console.log(context.request.url);
+router.get("/buscar", async (context) => {
+    const producto = context.request.url.searchParams.get("producto");
+    const supermercados = context.request.url.searchParams.get("supermercados")?.split(",")??[];
+    console.log(context.request.url);
 
-    if (product) {
+    if (producto) {
         try {
-            const results = await scrapeProductPrices(product, supermarkets);
+            const results = await scrapeProductPrices(producto, supermercados);
             context.response.status = 200;
             context.response.headers.set("Content-Type", "application/json");
             context.response.body = JSON.stringify(results);
@@ -28,7 +28,7 @@ router.get("/search", async (context) => {
                 (error instanceof SupermarketError) ?
                     { error: "Invalid supermarket provided" } :
                 (error instanceof ScraperError) ?
-                    { error: `Error scraping ${supermarkets}` } :
+                    { error: `Error scraping ${supermercados}` } :
                         { error: "Unknown error occurred" };
             context.response.status = 500;
         }

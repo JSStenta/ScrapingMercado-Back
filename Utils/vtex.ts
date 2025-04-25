@@ -1,23 +1,44 @@
 /**
  * @prettier
  */
+const redireccionCache: Map<string, string> = new Map();
+
+const getCachedRedireccion = (url: string, busqueda: string): string | undefined => {
+	const key = url + busqueda;
+	return redireccionCache.get(key);
+};
+
+const setCachedRedireccion = (url: string, busqueda: string, value: string): void => {
+	const key = url + busqueda;
+	redireccionCache.set(key, value);
+	console.log("Guardando redireccion en cache", redireccionCache);
+};
+
 export async function fetchSupermercado(
 	busqueda: string,
 	desde: number,
 	hasta: number,
 	url: string
 ) {
+	let redireccion = getCachedRedireccion(url, busqueda);
 	let parametros = generateFetch(busqueda, desde, hasta);
-	let response = (
-		await fetch(`${url}_v/segment/graphql/v1?${parametros}`)
-	).json();
-	const redireccion = (await response).data?.productSearch?.redirect;
+	let response: Promise<any> = Promise.resolve({});
+	if (!redireccion) {
+		console.log("Dirigiendo... ", `${url}_v/segment/graphql/v1?${parametros}`);
+		response = (
+			await fetch(`${url}_v/segment/graphql/v1?${parametros}`)
+		).json();
+		redireccion = (await response).data?.productSearch?.redirect;
+	}
 	if (redireccion) {
-		parametros = generateFetch(
-			redireccion.split("?")[0].toLowerCase(),
-			desde,
-			hasta,
-			true
+		setCachedRedireccion(url, busqueda, redireccion);
+		const split = redireccion.split("?")[0].toLowerCase();
+		parametros = split.includes("https://")
+			? generateFetch(split.split("/").pop() ?? "", desde, hasta)
+			: generateFetch(split, desde, hasta, true);
+		console.log(
+			"Redirigiendo... ",
+			`${url}_v/segment/graphql/v1?${parametros}`
 		);
 		response = (
 			await fetch(`${url}_v/segment/graphql/v1?${parametros}`)
@@ -55,6 +76,7 @@ const generateFetch = (
 		const split = busqueda.split("/");
 		if (split[1] == "162") {
 			variables.map = "b";
+			variables.query = "carrefour/carrefour";
 			variables.selectedFacets = [{ key: "b", value: "carrefour" }];
 		} else {
 			variables.map = "c,c";

@@ -29,12 +29,12 @@ export class ElNeneScraper implements SupermarketScraper {
 
 function formatearProductos(productos: any[], busqueda: string): ProductInfo[] {
 	return productos.map((producto: any) => ({
-		supermarket: "El Nene",
-		search: `https://www.grupoelnene.com.ar/${busqueda}?_q=${busqueda}`,
-		title: producto.productName, // Nombre del producto
-		price: parseFloat(producto.priceRange.sellingPrice.lowPrice), // Precio del producto
-		image: producto.items[0].images[0]?.imageUrl ?? "", // Imagen del producto
-		link: `https://www.grupoelnene.com.ar${producto.link}`, // Enlace al producto
+		supermercado: "El Nene",
+		busqueda: `https://www.grupoelnene.com.ar/${busqueda}?_q=${busqueda}`,
+		titulo: producto.productName, // Nombre del producto
+		precio: parseFloat(producto.priceRange.sellingPrice.lowPrice), // Precio del producto
+		imagen: producto.items[0].images[0]?.imageUrl ?? "", // Imagen del producto
+		enlace: `https://www.grupoelnene.com.ar${producto.link}`, // Enlace al producto
 	}));
 }
 

@@ -14,40 +14,39 @@ export class CotoScraper implements SupermarketScraper {
 			const productos = (await fetchCoto(search, cantidad)).records;
 			const url = `https://www.cotodigital.com.ar/sitios/cdigi/categoria?_dyncharset=utf-8&Nrpp=${cantidad}&Ntt=${search}`;
 
-			const salida: ProductInfo[] = productos.map((item: any) => {
-				const path = item.records[0];
-				try {
-					const producto = {
-						supermarket: "Coto",
-						search: url,
-						title: path.attributes["product.displayName"][0],
-						price: parseFloat(
-							JSON.parse(
-								path.attributes["product.dtoDescuentos"][0]
-							)[0]?.precioDescuento.replace("$", "") ??
-								path.attributes["sku.activePrice"]
-						),
-						unit: [
-							path.attributes["product.cFormato"] ?? undefined,
-							parseFloat(path.attributes["sku.referencePrice"] ?? undefined),
-						] as [string, number],
-						image: path.attributes["product.mediumImage.url"][0] ?? "",
-						link: `https://www.cotodigital.com.ar/sitios/cdigi/productos${(
-							item.detailsAction["recordState"] ??
-							path.detailsAction["recordState"]
-						).replace("format=json", "")}`,
-					};
-					return producto;
-				} catch (e) {
-					console.error("Error en coto", e);
-				}
-			});
+			const salida = formatearProductos(productos, url);
 			return salida ?? [];
 		} catch (_) {
 			return [];
 		}
 	}
 }
+
+function formatearProductos(productos: any[], busqueda: string): ProductInfo[] {
+	return productos.map((item): ProductInfo => {
+		const path = item.records[0];
+		return {
+			supermercado: "Coto",
+			busqueda: busqueda,
+			titulo: path.attributes["product.displayName"][0],
+			precio: parseFloat(
+				JSON.parse(
+					path.attributes["product.dtoDescuentos"][0]
+				)[0]?.precioDescuento.replace("$", "") ??
+					path.attributes["sku.activePrice"]
+			),
+			unidad: path.attributes["product.cFormato"]?.[0],
+			precioUnidad: parseFloat(
+				path.attributes["sku.referencePrice"] ?? undefined
+			),
+			imagen: path.attributes["product.mediumImage.url"][0] ?? "",
+			enlace: `https://www.cotodigital.com.ar/sitios/cdigi/productos${(
+				item.detailsAction["recordState"] ?? path.detailsAction["recordState"]
+			).replace("format=json", "")}`,
+		};
+	});
+}
+
 async function fetchCoto(search: string, cantidad = 1) {
 	const response = await (
 		await fetch(

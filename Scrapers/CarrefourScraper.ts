@@ -44,7 +44,17 @@ export class CarrefourScraper implements SupermarketScraper {
 }
 
 function formatearProductos(productos: any[], busqueda: string): ProductInfo[] {
-	return productos.map((producto: any) => {
+	let cadena = "";
+	const prod = productos.map((producto): ProductInfo => {
+		const genesixVtexGroup = producto.specificationGroups.find(
+			(group: any) => group.name === "Genesix Vtex"
+		);
+		cadena += `"${producto.productName}": ${JSON.stringify(
+			genesixVtexGroup,
+			null,
+			2
+		)},\n`;
+
 		const price = parseFloat(
 			producto.items[0]?.sellers[0]?.commertialOffer?.Price
 		);
@@ -52,15 +62,17 @@ function formatearProductos(productos: any[], busqueda: string): ProductInfo[] {
 			(parseFloat(producto.skuSpecifications[0]?.values[0]?.name) * price) /
 			parseFloat(producto.items[0]?.sellers[0]?.commertialOffer?.ListPrice);
 		return {
-			supermarket: "Carrefour",
-			search: `https://www.carrefour.com.ar/${busqueda}?_q=${busqueda}`,
-			title: producto.productName, // Nombre del producto
-			price: price, // Precio del producto
-			unit: ["kg", pricePerUnit], // Unidad de medida y precio por unidad
-			image: producto.items[0].images[0]?.imageUrl ?? "", // Imagen del producto
-			link: `https://www.carrefour.com.ar${producto.link}`, // Enlace al producto
+			supermercado: "Carrefour",
+			busqueda: `https://www.carrefour.com.ar/${busqueda}?_q=${busqueda}`,
+			titulo: producto.productName,
+			precio: price,
+			unidad: genesixVtexGroup?.specifications[0]?.values[0] ?? undefined,
+			precioUnidad: pricePerUnit ?? undefined,
+			imagen: producto.items[0].images[0]?.imageUrl ?? "", // Imagen del producto
+			enlace: `https://www.carrefour.com.ar${producto.link}`, // Enlace al producto
 		};
 	});
+	return prod;
 }
 
 async function _cantidadDeProductos(query: string): Promise<number> {
