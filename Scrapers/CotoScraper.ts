@@ -13,6 +13,7 @@ export class CotoScraper implements SupermarketScraper {
 
 			const productos = (await fetchCoto(search, cantidad)).records;
 			const url = `https://www.cotodigital.com.ar/sitios/cdigi/categoria?_dyncharset=utf-8&Nrpp=${cantidad}&Ntt=${search}`;
+			console.log(url + "&format=json");
 
 			const salida = formatearProductos(productos, url);
 			return salida ?? [];
@@ -25,20 +26,23 @@ export class CotoScraper implements SupermarketScraper {
 function formatearProductos(productos: any[], busqueda: string): ProductInfo[] {
 	return productos.map((item): ProductInfo => {
 		const path = item.records[0];
+		const precio = path.attributes["sku.activePrice"];
+		const precioDescuento =
+			JSON.parse(
+				path.attributes["product.dtoDescuentos"][0]
+			)[0]?.precioDescuento.replace("$", "") ?? undefined;
+		const precioUnidad = parseFloat(path.attributes["sku.referencePrice"]);
 		return {
 			supermercado: "Coto",
 			busqueda: busqueda,
 			titulo: path.attributes["product.displayName"][0],
-			precio: parseFloat(
-				JSON.parse(
-					path.attributes["product.dtoDescuentos"][0]
-				)[0]?.precioDescuento.replace("$", "") ??
-					path.attributes["sku.activePrice"]
-			),
+			precio: parseFloat(precioDescuento ?? precio),
 			unidad: path.attributes["product.cFormato"]?.[0],
-			precioUnidad: parseFloat(
-				path.attributes["sku.referencePrice"] ?? undefined
-			),
+			precioUnidad: precioUnidad
+				? precioDescuento
+					? (parseFloat(precioDescuento) / parseFloat(precio)) * precioUnidad
+					: precioUnidad
+				: undefined,
 			imagen: path.attributes["product.mediumImage.url"][0] ?? "",
 			enlace: `https://www.cotodigital.com.ar/sitios/cdigi/productos${(
 				item.detailsAction["recordState"] ?? path.detailsAction["recordState"]
