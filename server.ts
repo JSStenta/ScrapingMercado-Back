@@ -1,12 +1,15 @@
 //server.ts
 /// <reference lib="deno.ns" />
-import { Application, Router } from "https://deno.land/x/oak/mod.ts";
+import { Application } from "jsr:@oak/oak/application";
+import { Router } from "jsr:@oak/oak/router";
 import { oakCors } from "https://deno.land/x/cors/mod.ts";
 import { scrapeProductPrices } from "./Scrapers/ScrapreProductPrices.ts";
 import { SupermarketError, ScraperError } from "./Utils/errorHandler.ts";
 
 const app = new Application();
 const router = new Router();
+const api = Deno.env.get("API");
+const puerto = Deno.env.get("PUERTO");
 
 // Configurar CORS
 app.use(oakCors({ origin: "*"}));
@@ -61,4 +64,4 @@ app.addEventListener("listen", () => {
     console.log("Servidor escuchando en http://localhost:8000");
 });
 
-await app.listen({ port: 8000 });
+await app.listen({ port: puerto });
