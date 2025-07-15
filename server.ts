@@ -8,16 +8,17 @@ import { SupermarketError, ScraperError } from "./Utils/errorHandler.ts";
 
 const app = new Application();
 const router = new Router();
-const api = Deno.env.get("API");
-const puerto = Deno.env.get("PUERTO");
+const host = Deno.env.get("HOST") ?? "127.0.0.1";
+const puerto = parseInt(Deno.env.get("PUERTO") ?? "8000");
+const front = Deno.env.get("FRONT");
 
 // Configurar CORS
-app.use(oakCors({ origin: "*"}));
+app.use(oakCors({ origin: front ?? "*" }));
 
 // Definir la ruta de búsqueda
 router.get("/buscar", async (context) => {
     const producto = context.request.url.searchParams.get("producto");
-    const supermercados = context.request.url.searchParams.get("supermercados")?.split(",")??[];
+    const supermercados = context.request.url.searchParams.get("supermercados")?.split(",") ?? [];
     console.log(context.request.url);
 
     if (producto) {
@@ -27,11 +28,12 @@ router.get("/buscar", async (context) => {
             context.response.headers.set("Content-Type", "application/json");
             context.response.body = JSON.stringify(results);
         } catch (error) {
+            console.error("Error en /buscar:", error);
             context.response.body =
                 (error instanceof SupermarketError) ?
                     { error: "Invalid supermarket provided" } :
-                (error instanceof ScraperError) ?
-                    { error: `Error scraping ${supermercados}` } :
+                    (error instanceof ScraperError) ?
+                        { error: `Error scraping ${supermercados}` } :
                         { error: "Unknown error occurred" };
             context.response.status = 500;
         }
@@ -41,27 +43,13 @@ router.get("/buscar", async (context) => {
     }
 });
 
-// Ruta para `script.js`
-router.get("/script.js", async (context) => {
-    const script = await Deno.readTextFile("script.js");
-    context.response.headers.set("Content-Type", "application/javascript");
-    context.response.body = script;
-});
-
-// Ruta para servir `index.html` por defecto
-router.get("/", async (context) => {
-    const html = await Deno.readTextFile("index.html");
-    context.response.headers.set("Content-Type", "text/html");
-    context.response.body = html;
-});
-
 // Usar el router en la aplicación
 app.use(router.routes());
 app.use(router.allowedMethods());
 
 // Iniciar el servidor en el puerto 8000
 app.addEventListener("listen", () => {
-    console.log("Servidor escuchando en http://localhost:8000");
+    console.log(`Servidor escuchando en ${host}:${puerto}`);
 });
 
-await app.listen({ port: puerto });
+await app.listen({ hostname: host, port: puerto });
