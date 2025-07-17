@@ -2,6 +2,7 @@
  * @prettier
  */
 const redireccionCache: Map<string, string> = new Map();
+const hash = Deno.env.get("VTEX_HASH");
 
 const getCachedRedireccion = (url: string, busqueda: string): string | undefined => {
 	const key = url + busqueda;
@@ -103,7 +104,7 @@ const generateParametros = (variables: any) =>
 			persistedQuery: {
 				version: 1,
 				sha256Hash:
-					"9177ba6f883473505dc99fcf2b679a6e270af6320a157f0798b92efeab98d5d3",
+					hash,
 				sender: "vtex.store-resources@0.x",
 				provider: "vtex.search-graphql@0.x",
 			},
