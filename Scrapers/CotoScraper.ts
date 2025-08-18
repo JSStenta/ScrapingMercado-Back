@@ -43,7 +43,7 @@ function formatearProductos(productos: any[], busqueda: string): ProductInfo[] {
 					? (parseFloat(precioDescuento) / parseFloat(precio)) * precioUnidad
 					: precioUnidad
 				: undefined,
-			imagen: path.attributes["product.mediumImage.url"][0] ?? "",
+			imagen: path.attributes["product.largeImage.url"][0] ?? "",
 			enlace: `https://www.cotodigital.com.ar/sitios/cdigi/productos${(
 				item.detailsAction["recordState"] ?? path.detailsAction["recordState"]
 			).replace("format=json", "")}`,
