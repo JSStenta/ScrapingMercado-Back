@@ -12,7 +12,7 @@ export class CotoScraper implements SupermarketScraper {
 			if (!cantidad) throw new Error("No se encontraron productos en Coto");
 
 			const productos = (await fetchCoto(search, cantidad)).records;
-			const url = `https://www.cotodigital.com.ar/sitios/cdigi/categoria?_dyncharset=utf-8&Nrpp=${cantidad}&Ntt=${search}`;
+			const url = `/categoria?_dyncharset=utf-8&Nrpp=${cantidad}&Ntt=${search}`;
 			console.log(url + "&format=json");
 
 			const salida = formatearProductos(productos, url);
@@ -33,7 +33,7 @@ function formatearProductos(productos: any[], busqueda: string): ProductInfo[] {
 			)[0]?.precioDescuento.replace("$", "") ?? undefined;
 		const precioUnidad = parseFloat(path.attributes["sku.referencePrice"]);
 		return {
-			supermercado: "Coto",
+			supermercado: "coto",
 			busqueda: busqueda,
 			titulo: path.attributes["product.displayName"][0],
 			precio: parseFloat(precioDescuento ?? precio),
@@ -44,9 +44,7 @@ function formatearProductos(productos: any[], busqueda: string): ProductInfo[] {
 					: precioUnidad
 				: undefined,
 			imagen: path.attributes["product.largeImage.url"][0] ?? "",
-			enlace: `https://www.cotodigital.com.ar/sitios/cdigi/productos${(
-				item.detailsAction["recordState"] ?? path.detailsAction["recordState"]
-			).replace("format=json", "")}`,
+			enlace: `/productos${(item.detailsAction["recordState"] ?? path.detailsAction["recordState"]).replace("format=json", "")}`,
 		};
 	});
 }

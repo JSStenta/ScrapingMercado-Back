@@ -62,14 +62,14 @@ function formatearProductos(productos: any[], busqueda: string): ProductInfo[] {
 			(parseFloat(producto.skuSpecifications[0]?.values[0]?.name) * price) /
 			parseFloat(producto.items[0]?.sellers[0]?.commertialOffer?.ListPrice);
 		return {
-			supermercado: "Carrefour",
-			busqueda: `https://www.carrefour.com.ar/${busqueda}?_q=${busqueda}`,
+			supermercado: "carrefour",
+			busqueda: `/${busqueda}?_q=${busqueda}`,
 			titulo: producto.productName,
 			precio: price,
 			unidad: genesixVtexGroup?.specifications[0]?.values[0] ?? undefined,
 			precioUnidad: pricePerUnit ?? undefined,
 			imagen: producto.items[0].images[0]?.imageUrl ?? "", // Imagen del producto
-			enlace: `https://www.carrefour.com.ar${producto.link}`, // Enlace al producto
+			enlace: producto.link, // Enlace al producto
 		};
 	});
 	return prod;

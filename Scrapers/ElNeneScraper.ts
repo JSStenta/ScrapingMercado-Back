@@ -29,12 +29,12 @@ export class ElNeneScraper implements SupermarketScraper {
 
 function formatearProductos(productos: any[], busqueda: string): ProductInfo[] {
 	return productos.map((producto: any) => ({
-		supermercado: "El Nene",
-		busqueda: `https://www.grupoelnene.com.ar/${busqueda}?_q=${busqueda}`,
+		supermercado: "elnene",
+		busqueda: `/${busqueda}?_q=${busqueda}`,
 		titulo: producto.productName, // Nombre del producto
 		precio: parseFloat(producto.priceRange.sellingPrice.lowPrice), // Precio del producto
 		imagen: producto.items[0].images[0]?.imageUrl ?? "", // Imagen del producto
-		enlace: `https://www.grupoelnene.com.ar${producto.link}`, // Enlace al producto
+		enlace: `${producto.link}`, // Enlace al producto
 	}));
 }
 
