@@ -4,7 +4,7 @@ import { scrapeProductPrices } from "./Scrapers/ScrapreProductPrices.ts";
 import { SupermarketError, ScraperError } from "./Utils/errorHandler.ts";
 
 const puerto = parseInt(Deno.env.get("PUERTO") ?? "8000");
-const front = Deno.env.get("FRONT");
+const front = Deno.env.get("FRONT") ?? "*";
 
 Deno.serve({
     port: puerto,

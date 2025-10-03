@@ -3,17 +3,18 @@
  */
 import { SupermarketScraper } from "./SupermarketScraperInterface.ts";
 import { ProductInfo } from "../models/product.ts";
+import { normalizarUnidades, redondeoConDecimales } from "../Utils/Utils.ts";
 
 export class CotoScraper implements SupermarketScraper {
 	async scrapeProduct(search: string): Promise<ProductInfo[]> {
-		console.log("Buscando en Coto");
+		console.info("Buscando en Coto");
 		try {
 			const cantidad = (await fetchCoto(search))["totalNumRecs"];
 			if (!cantidad) throw new Error("No se encontraron productos en Coto");
 
 			const productos = (await fetchCoto(search, cantidad)).records;
 			const url = `/categoria?_dyncharset=utf-8&Nrpp=${cantidad}&Ntt=${search}`;
-			console.log(url + "&format=json");
+			console.info(url + "&format=json");
 
 			const salida = formatearProductos(productos, url);
 			return salida ?? [];
@@ -36,8 +37,8 @@ function formatearProductos(productos: any[], busqueda: string): ProductInfo[] {
 			supermercado: "coto",
 			busqueda: busqueda,
 			titulo: path.attributes["product.displayName"][0],
-			precio: parseFloat(precioDescuento ?? precio),
-			unidad: path.attributes["product.cFormato"]?.[0],
+			precio: redondeoConDecimales(parseFloat(precioDescuento ?? precio)),
+			unidad: normalizarUnidades(path.attributes["product.cFormato"]?.[0]),
 			precioUnidad: precioUnidad
 				? precioDescuento
 					? (parseFloat(precioDescuento) / parseFloat(precio)) * precioUnidad

@@ -4,10 +4,11 @@
 import { SupermarketScraper } from "./SupermarketScraperInterface.ts";
 import { ProductInfo } from "../models/product.ts";
 import { fetchSupermercado } from "../Utils/vtex.ts";
+import { redondeoConDecimales } from "../Utils/Utils.ts";
 
 export class DiaScraper implements SupermarketScraper {
 	async scrapeProduct(search: string): Promise<ProductInfo[]> {
-		console.log("Buscando en Dia");
+		console.info("Buscando en Dia");
 		try {
 			const cantProductos = await cantidadDeProductos(search);
 			const productos: ProductInfo[] = [];
@@ -32,9 +33,9 @@ function formatearProductos(productos: any[], busqueda: string): ProductInfo[] {
 		supermercado: "dia",
 		busqueda: `/${busqueda}?_q=${busqueda}`,
 		titulo: producto.productName,
-		precio: producto.priceRange.sellingPrice.lowPrice,
+		precio: redondeoConDecimales(producto.priceRange.sellingPrice.lowPrice),
 		unidad: producto.specificationGroups[0]?.specifications[1]?.values[0],
-		precioUnidad: parseFloat(producto.specificationGroups[0]?.specifications[0]?.values[0]),
+		precioUnidad: redondeoConDecimales(parseFloat(producto.specificationGroups[0]?.specifications[0]?.values[0])),
 		imagen: producto.items[0].images[0]?.imageUrl ?? "",
 		enlace: `/${producto.linkText}/p`,
 	}));

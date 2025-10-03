@@ -4,10 +4,11 @@
 import { SupermarketScraper } from "./SupermarketScraperInterface.ts";
 import { ProductInfo } from "../models/product.ts";
 import { fetchSupermercado } from "../Utils/vtex.ts";
+import { normalizarUnidades, redondeoConDecimales } from "../Utils/Utils.ts";
 
 export class CarrefourScraper implements SupermarketScraper {
 	async scrapeProduct(search: string): Promise<ProductInfo[]> {
-		console.log("Buscando en Carrefour");
+		console.info("Buscando en Carrefour");
 		try {
 			const productos: ProductInfo[] = [];
 			let desde = 0;
@@ -65,11 +66,11 @@ function formatearProductos(productos: any[], busqueda: string): ProductInfo[] {
 			supermercado: "carrefour",
 			busqueda: `/${busqueda}?_q=${busqueda}`,
 			titulo: producto.productName,
-			precio: price,
-			unidad: genesixVtexGroup?.specifications[0]?.values[0] ?? undefined,
-			precioUnidad: pricePerUnit ?? undefined,
-			imagen: producto.items[0].images[0]?.imageUrl ?? "", // Imagen del producto
-			enlace: producto.link, // Enlace al producto
+			precio: redondeoConDecimales(price),
+			unidad: normalizarUnidades(genesixVtexGroup?.specifications[0]?.values[0]),
+			precioUnidad: redondeoConDecimales(pricePerUnit) ?? undefined,
+			imagen: producto.items[0].images[0]?.imageUrl ?? "",
+			enlace: producto.link,
 		};
 	});
 	return prod;

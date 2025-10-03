@@ -4,10 +4,15 @@
 import { SupermarketScraper } from "./SupermarketScraperInterface.ts";
 import { ProductInfo } from "../models/product.ts";
 import { fetchSupermercado } from "../Utils/vtex.ts";
+import {
+	calcularPrecioPorUnidad,
+	redondeoConDecimales,
+	unidadDeCadena,
+} from "../Utils/Utils.ts";
 
 export class ElNeneScraper implements SupermarketScraper {
 	async scrapeProduct(search: string): Promise<ProductInfo[]> {
-		console.log("Buscando en El Nene");
+		console.info("Buscando en El Nene");
 		try {
 			const cantProductos = await cantidadDeProductos(search);
 			const productos: ProductInfo[] = [];
@@ -28,14 +33,20 @@ export class ElNeneScraper implements SupermarketScraper {
 }
 
 function formatearProductos(productos: any[], busqueda: string): ProductInfo[] {
-	return productos.map((producto: any) => ({
-		supermercado: "elnene",
-		busqueda: `/${busqueda}?_q=${busqueda}`,
-		titulo: producto.productName, // Nombre del producto
-		precio: parseFloat(producto.priceRange.sellingPrice.lowPrice), // Precio del producto
-		imagen: producto.items[0].images[0]?.imageUrl ?? "", // Imagen del producto
-		enlace: `${producto.link}`, // Enlace al producto
-	}));
+	return productos.map((producto: any) => {
+		const unidad = unidadDeCadena(producto.productName);
+		const precio = redondeoConDecimales((producto.priceRange.sellingPrice.lowPrice));
+		return {
+			supermercado: "elnene",
+			busqueda: `/${busqueda}?_q=${busqueda}`,
+			titulo: producto.productName,
+			precio: precio,
+			unidad: unidad?.unidad,
+			precioUnidad: calcularPrecioPorUnidad(precio, unidad?.cantidad, unidad?.unidad),
+			imagen: producto.items[0].images[0]?.imageUrl ?? "",
+			enlace: `${producto.link}`,
+		};
+	});
 }
 
 async function cantidadDeProductos(query: string): Promise<number> {

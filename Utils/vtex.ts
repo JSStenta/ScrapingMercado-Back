@@ -12,7 +12,7 @@ const getCachedRedireccion = (url: string, busqueda: string): string | undefined
 const setCachedRedireccion = (url: string, busqueda: string, value: string): void => {
 	const key = url + busqueda;
 	redireccionCache.set(key, value);
-	console.log("Guardando redireccion en cache", redireccionCache);
+	console.info("Guardando redireccion en cache", redireccionCache);
 };
 
 export async function fetchSupermercado(
@@ -25,7 +25,7 @@ export async function fetchSupermercado(
 	let parametros = generateFetch(busqueda, desde, hasta);
 	let response: Promise<any> = Promise.resolve({});
 	if (!redireccion) {
-		console.log("Dirigiendo... ", `${url}_v/segment/graphql/v1?${parametros}`);
+		console.info("Dirigiendo... ", `${url}_v/segment/graphql/v1?${parametros}`);
 		response = (
 			await fetch(`${url}_v/segment/graphql/v1?${parametros}`)
 		).json();
@@ -37,7 +37,7 @@ export async function fetchSupermercado(
 		parametros = split.includes("https://")
 			? generateFetch(split.split("/").pop() ?? "", desde, hasta)
 			: generateFetch(split, desde, hasta, true);
-		console.log(
+		console.info(
 			"Redirigiendo... ",
 			`${url}_v/segment/graphql/v1?${parametros}`
 		);
@@ -46,7 +46,7 @@ export async function fetchSupermercado(
 		).json();
 	}
 	if (!(await response).data.productSearch)
-		console.log(`${url}_v/segment/graphql/v1?${parametros}`);
+		console.info(`${url}_v/segment/graphql/v1?${parametros}`);
 	return (await response).data.productSearch;
 }
 
